@@ -85,8 +85,9 @@ python manage.py runserver
    ```
    Убедитесь, что установлен Chrome и chromedriver
 
-2. Запустите тесты:
+2. Установите dev-зависимости и запустите тесты:
    ```
+   pip install -r requirements-dev.txt
    python manage.py test main.tests.UserAuthSeleniumTests
    ```
 
@@ -130,7 +131,8 @@ python manage.py runserver
 2. Bandit (SAST), pip-audit (SCA), Gitleaks  
 3. Django `check --deploy`  
 4. Trivy (Docker), OWASP ZAP (DAST)  
-5. **CD:** автоматический deploy на сервер по SSH после успешного CI  
+5. **CI gate** — явная проверка, что все jobs успешны  
+6. **CD:** deploy на сервер **только после** CI gate (новый push отменяет предыдущий run)  
 
 ### Переменные окружения
 
