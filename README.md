@@ -122,4 +122,26 @@ python manage.py runserver
 - `/manage-playlists/` - управление плейлистами
 - `/radio/` - радио с случайными треками
 
-Test CI/CD pipeline
+## CI/CD и проверки безопасности
+
+При push в `main` запускается workflow [Security CI/CD](.github/workflows/security-ci.yml):
+тесты, Bandit (SAST), pip-audit (SCA), Gitleaks, Django `check --deploy`, Trivy (Docker).
+
+### Как специально «сломать» код и вернуть красные проверки (для демо)
+
+| Инструмент | Что изменить | Файл |
+|------------|--------------|------|
+| **Bandit (SAST)** | Убрать `timeout` у `requests.get` | `main/views.py` → `get_random_track`, строка с `requests.get(chart_url)` |
+| **pip-audit (SCA)** | Временно добавить уязвимый пакет, напр. `urllib3==1.26.2` | `requirements.txt` |
+| **Gitleaks** | Добавить строку-приманку: `AWS_SECRET_ACCESS_KEY=AKIAIOSFODNN7EXAMPLE` | любой `.py` (не коммитьте в прод!) |
+| **Trivy** | Заменить базовый образ на старый без обновлений: `FROM python:3.9-slim` и убрать `apt-get upgrade` | `Dockerfile` |
+| **Django check** | В workflow для job `django-deploy-check` убрать `continue-on-error: true` при `DEBUG=True` | `.github/workflows/security-ci.yml` |
+
+После демо откатите изменения (`git revert` или верните исправления) и сделайте `git push`.
+
+### Обновление на сервере после push
+
+```bash
+ssh root@135.106.155.142
+cd ~/CI_CD && git pull && docker compose up --build -d
+```

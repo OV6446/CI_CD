@@ -456,7 +456,7 @@ def get_random_track(request):
         
         # Получаем чарт для выбранного жанра
         chart_url = f'https://api.deezer.com/chart/{random_genre}/tracks'
-        response = requests.get(chart_url)
+        response = requests.get(chart_url, timeout=10)
         
         if response.status_code == 200:
             data = response.json()

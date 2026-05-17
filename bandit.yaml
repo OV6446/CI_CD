@@ -1,0 +1,7 @@
+exclude_dirs:
+  - venv
+  - .git
+  - __pycache__
+  - migrations
+skips:
+  - B101

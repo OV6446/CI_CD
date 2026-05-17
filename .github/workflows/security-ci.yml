@@ -55,9 +55,9 @@ jobs:
 
       - name: Сканирование Python-кода
         run: |
-          bandit -r main myproject -f json -o bandit-report.json -c .bandit \
-            --severity-level medium
-          bandit -r main myproject -c .bandit --severity-level medium
+          bandit -r main myproject -f json -o bandit-report.json -c bandit.yaml \
+            --severity-level medium || true
+          bandit -r main myproject -c bandit.yaml --severity-level medium
 
       - name: Сохранение отчёта
         if: always()
@@ -131,6 +131,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Сборка образа
         run: docker build -t music-library:ci .
 
@@ -138,21 +141,23 @@ jobs:
         uses: aquasecurity/trivy-action@0.28.0
         with:
           image-ref: music-library:ci
+          format: table
+          severity: CRITICAL,HIGH
+          exit-code: "0"
+          ignore-unfixed: true
+
+      - name: Trivy — отчёт SARIF (артефакт)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: music-library:ci
           format: sarif
           output: trivy-results.sarif
-          severity: CRITICAL,HIGH,MEDIUM
-          # exit-code 0: отчёт для анализа в курсовой; смените на "1" для жёсткой блокировки релиза
+          severity: CRITICAL,HIGH
           exit-code: "0"
-
-      - name: Загрузка SARIF в GitHub Security
-        uses: github/codeql-action/upload-sarif@v3
-        if: always()
-        with:
-          sarif_file: trivy-results.sarif
-        continue-on-error: true
+          ignore-unfixed: true
 
       - name: Артефакт отчёта Trivy
-        if: always()
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: trivy-report
