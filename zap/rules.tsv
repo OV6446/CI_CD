@@ -5,3 +5,5 @@
 # CDN (Bootstrap, Plyr, Font Awesome) — внешние скрипты без SRI в шаблонах
 10017	IGNORE	(Cross-Domain JavaScript Source File Inclusion)
 90003	IGNORE	(Sub Resource Integrity Attribute Missing)
+# COEP на ответах CDN (Bootstrap/Plyr) — не контролируется нашим сервером
+90004	IGNORE	(Cross-Origin-Embedder-Policy Header Missing or Invalid)
