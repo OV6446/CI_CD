@@ -121,3 +121,5 @@ python manage.py runserver
 - `/my-playlist/<id>/` - просмотр плейлиста
 - `/manage-playlists/` - управление плейлистами
 - `/radio/` - радио с случайными треками
+
+Test CI/CD pipeline
