@@ -138,7 +138,7 @@ jobs:
         run: docker build -t music-library:ci .
 
       - name: Trivy — уязвимости в образе
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@0.36.0
         with:
           image-ref: music-library:ci
           format: table
@@ -147,7 +147,7 @@ jobs:
           ignore-unfixed: true
 
       - name: Trivy — отчёт SARIF (артефакт)
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@0.36.0
         with:
           image-ref: music-library:ci
           format: sarif
