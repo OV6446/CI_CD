@@ -1,5 +1,4 @@
-# CI/CD с интеграцией автоматизированных проверок безопасности
-# Тема курсовой: инструменты security testing в CI/CD-процессах
+# CI/CD: проверки безопасности + автоматический deploy на сервер после успешного CI
 
 name: Security CI/CD
 
@@ -13,8 +12,13 @@ permissions:
   contents: read
   security-events: write
 
+env:
+  DJANGO_SECRET_KEY: ci-django-secret-key-minimum-fifty-characters-long-x
+  DJANGO_DEBUG: "false"
+  DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1,testserver
+  DJANGO_CSRF_TRUSTED_ORIGINS: http://localhost:8000,http://127.0.0.1:8000
+
 jobs:
-  # --- Базовые тесты (quality gate перед/параллельно security) ---
   tests:
     name: Функциональные тесты
     runs-on: ubuntu-latest
@@ -39,7 +43,6 @@ jobs:
       - name: API-тесты
         run: python test_api.py
 
-  # --- SAST: статический анализ исходного кода (Bandit) ---
   sast-bandit:
     name: SAST (Bandit)
     runs-on: ubuntu-latest
@@ -66,7 +69,6 @@ jobs:
           name: bandit-report
           path: bandit-report.json
 
-  # --- SCA: уязвимости в зависимостях (pip-audit) ---
   sca-dependencies:
     name: SCA (pip-audit)
     runs-on: ubuntu-latest
@@ -83,7 +85,6 @@ jobs:
       - name: Проверка requirements.txt
         run: pip-audit -r requirements.txt --desc on
 
-  # --- Поиск секретов в репозитории (Gitleaks) ---
   secrets-scan:
     name: Secret scanning (Gitleaks)
     runs-on: ubuntu-latest
@@ -97,7 +98,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # --- Проверка настроек Django для production ---
   django-deploy-check:
     name: Django security check
     runs-on: ubuntu-latest
@@ -111,11 +111,10 @@ jobs:
       - name: Установка зависимостей
         run: pip install -r requirements.txt
 
-      - name: check --deploy (предупреждения безопасности)
+      - name: check --deploy
         run: |
           python manage.py check --deploy 2>&1 | tee django-deploy-check.txt
-          # В dev-проекте DEBUG=True — ожидаем предупреждения; не падаем, сохраняем отчёт
-        continue-on-error: true
+          python manage.py check --deploy --fail-level ERROR
 
       - name: Сохранение отчёта
         if: always()
@@ -124,7 +123,6 @@ jobs:
           name: django-deploy-check
           path: django-deploy-check.txt
 
-  # --- Сканирование Docker-образа (Trivy) ---
   container-scan:
     name: Container scan (Trivy)
     runs-on: ubuntu-latest
@@ -143,10 +141,10 @@ jobs:
           image-ref: music-library:ci
           format: table
           severity: CRITICAL,HIGH
-          exit-code: "0"
+          exit-code: "1"
           ignore-unfixed: true
 
-      - name: Trivy — отчёт SARIF (артефакт)
+      - name: Trivy — отчёт SARIF
         uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: music-library:ci
@@ -157,8 +155,67 @@ jobs:
           ignore-unfixed: true
 
       - name: Артефакт отчёта Trivy
-        if: success()
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: trivy-report
           path: trivy-results.sarif
+
+  dast-zap:
+    name: DAST (OWASP ZAP baseline)
+    runs-on: ubuntu-latest
+    needs: tests
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Запуск приложения для сканирования
+        run: |
+          pip install -r requirements.txt
+          python manage.py migrate --noinput
+          python manage.py runserver 127.0.0.1:8000 &
+          sleep 8
+          curl -f http://127.0.0.1:8000/ -o /dev/null -s -L
+
+      - name: OWASP ZAP baseline scan
+        uses: zaproxy/action-baseline@v0.14.0
+        with:
+          target: http://127.0.0.1:8000
+          fail_action: false
+          allow_issue_writing: false
+
+  deploy:
+    name: CD — deploy на сервер
+    runs-on: ubuntu-latest
+    needs:
+      - tests
+      - sast-bandit
+      - sca-dependencies
+      - secrets-scan
+      - django-deploy-check
+      - container-scan
+      - dast-zap
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment: production
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT != '' && secrets.SSH_PORT || '22' }}
+          script: |
+            set -e
+            cd ~/CI_CD
+            git fetch origin main
+            git reset --hard origin/main
+            if [ ! -f .env ]; then
+              echo "ERROR: создайте файл .env из .env.example"
+              exit 1
+            fi
+            docker compose up --build -d
+            docker compose ps

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Точка входа: миграции и запуск сервера Django."""
+"""Точка входа: миграции, статика и Gunicorn."""
 import os
 import sys
 
@@ -14,7 +14,21 @@ def main():
         return
 
     execute_from_command_line(['manage.py', 'migrate', '--noinput'])
-    execute_from_command_line(['manage.py', 'runserver', '0.0.0.0:8000'])
+    execute_from_command_line(['manage.py', 'collectstatic', '--noinput'])
+
+    os.execvp(
+        'gunicorn',
+        [
+            'gunicorn',
+            'myproject.wsgi:application',
+            '--bind',
+            '0.0.0.0:8000',
+            '--workers',
+            '2',
+            '--timeout',
+            '120',
+        ],
+    )
 
 
 if __name__ == '__main__':

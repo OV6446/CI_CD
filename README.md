@@ -124,24 +124,39 @@ python manage.py runserver
 
 ## CI/CD и проверки безопасности
 
-При push в `main` запускается workflow [Security CI/CD](.github/workflows/security-ci.yml):
-тесты, Bandit (SAST), pip-audit (SCA), Gitleaks, Django `check --deploy`, Trivy (Docker).
+При push в `main` запускается [Security CI/CD](.github/workflows/security-ci.yml):
 
-### Как специально «сломать» код и вернуть красные проверки (для демо)
+1. Функциональные тесты  
+2. Bandit (SAST), pip-audit (SCA), Gitleaks  
+3. Django `check --deploy`  
+4. Trivy (Docker), OWASP ZAP (DAST)  
+5. **CD:** автоматический deploy на сервер по SSH после успешного CI  
 
-| Инструмент | Что изменить | Файл |
-|------------|--------------|------|
-| **Bandit (SAST)** | Убрать `timeout` у `requests.get` | `main/views.py` → `get_random_track`, строка с `requests.get(chart_url)` |
-| **pip-audit (SCA)** | Временно добавить уязвимый пакет, напр. `urllib3==1.26.2` | `requirements.txt` |
-| **Gitleaks** | Добавить строку-приманку: `AWS_SECRET_ACCESS_KEY=AKIAIOSFODNN7EXAMPLE` | любой `.py` (не коммитьте в прод!) |
-| **Trivy** | Заменить базовый образ на старый без обновлений: `FROM python:3.9-slim` и убрать `apt-get upgrade` | `Dockerfile` |
-| **Django check** | В workflow для job `django-deploy-check` убрать `continue-on-error: true` при `DEBUG=True` | `.github/workflows/security-ci.yml` |
-
-После демо откатите изменения (`git revert` или верните исправления) и сделайте `git push`.
-
-### Обновление на сервере после push
+### Переменные окружения
 
 ```bash
-ssh root@135.106.155.142
-cd ~/CI_CD && git pull && docker compose up --build -d
+cp .env.example .env
 ```
+
+Сгенерировать `DJANGO_SECRET_KEY`:
+
+```bash
+python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+```
+
+На сервере в `.env`: `DJANGO_DEBUG=false`, `DJANGO_ALLOWED_HOSTS`, `DJANGO_CSRF_TRUSTED_ORIGINS`.
+
+### GitHub Secrets для автодеплоя
+
+**Settings → Secrets → Actions:** `SSH_HOST`, `SSH_USER`, `SSH_PRIVATE_KEY`, опционально `SSH_PORT`.
+
+### Как специально «сломать» проверки (для демо)
+
+| Инструмент | Что изменить |
+|------------|--------------|
+| **Bandit** | Убрать `timeout` в `requests.get` (`get_random_track`) |
+| **pip-audit** | `urllib3==1.26.2` в `requirements.txt` |
+| **Gitleaks** | Fake API key в коде |
+| **Django check** | `DJANGO_DEBUG=true` в `env:` workflow |
+| **Trivy** | Старый `Dockerfile` без `apt-get upgrade` |
+| **Deploy** | Удалить `SSH_HOST` из Secrets |

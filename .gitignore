@@ -44,6 +44,12 @@ Thumbs.db
 
 # Docker
 .docker/
+.env
+
+# CI reports
+bandit-report.json
+trivy-results.sarif
+django-deploy-check.txt
 
 # Tests
 selenium_error.png
