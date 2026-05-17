@@ -12,4 +12,6 @@ class SecurityHeadersMiddleware:
         )
         response.headers['Cross-Origin-Resource-Policy'] = 'same-origin'
         response.headers['Cross-Origin-Opener-Policy'] = 'same-origin'
+        # unsafe-none — CDN (Bootstrap, Plyr) продолжают работать
+        response.headers['Cross-Origin-Embedder-Policy'] = 'unsafe-none'
         return response
