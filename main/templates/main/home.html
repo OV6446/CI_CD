@@ -1,0 +1,235 @@
+{% extends 'main/base.html' %}
+{% load main_extras %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Фильтры -->
+        <div class="col-md-3">
+            <div class="card artist-filter-card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Фильтры</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6>Исполнители</h6>
+                        <form method="get">
+                            <select name="artist" class="form-select mb-2">
+                                <option value="">Все исполнители</option>
+                                {% for artist_id, artist_name in artists %}
+                                    <option value="{{ artist_id }}" {% if selected_artist == artist_id|stringformat:'s' %}selected{% endif %}>{{ artist_name }}</option>
+                                {% endfor %}
+                            </select>
+                            <button type="submit" class="btn btn-primary w-100 mt-2">Показать</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Список плейлистов -->
+            <div class="card playlist-card">
+                <div class="card-header">
+                    <h5 class="mb-0">Мои плейлисты</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        {% for playlist in playlists %}
+                            <a href="{% url 'my_playlist' playlist.id %}" class="list-group-item list-group-item-action">
+                                {{ playlist.name }}
+                            </a>
+                        {% endfor %}
+                    </div>
+                    <div class="mt-3">
+                        <a href="{% url 'manage_playlists' %}" class="btn btn-primary btn-sm">Управление плейлистами</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Избранные песни -->
+        <div class="col-md-9">
+            <h1 class="mb-4">Моя музыка</h1>
+            
+            {% if songs %}
+                <div class="row">
+                    {% for song in songs %}
+                    <div class="col-md-4 mb-4">
+                        <div class="card position-relative">
+                            <div class="cover-wrapper position-relative play-cover-area" style="cursor:pointer;">
+                                <img src="{{ song.cover_url }}" class="card-img-top" alt="Обложка">
+                                {% if song.preview_url %}
+                                <button class="play-pause-overlay-btn position-absolute top-50 start-50 translate-middle btn btn-dark btn-circle shadow" type="button"
+                                    data-title="{{ song.title }}"
+                                    data-artist="{{ song.artist.name }}"
+                                    data-cover="{{ song.cover_url }}"
+                                    data-url="{{ song.preview_url }}"
+                                    style="background:rgba(0,0,0,0.55);border:none;width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;">
+                                    <i class="fas fa-play fa-lg text-white"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                            <div class="card-body">
+                                <h5 class="card-title">{{ song.title }}</h5>
+                                <p class="card-text">
+                                    <strong>Исполнитель:</strong> {{ song.artist.name }}
+                                </p>
+                                {% if not song.preview_url %}
+                                    <div class="alert alert-warning mb-2">
+                                        Превью недоступно
+                                    </div>
+                                {% else %}
+                                    <div class="track-progress mb-2">
+                                        <div class="progress" style="height: 4px;">
+                                            <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+                                        </div>
+                                        <div class="d-flex justify-content-between mt-1">
+                                            <small class="current-time">0:00</small>
+                                            <small class="duration">0:00</small>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                                {% if user.is_authenticated %}
+                                    <div class="card-actions">
+                                        <form action="{% url 'remove_from_playlist' playlist_id=default_playlist.id song_id=song.id %}" method="post" class="d-inline remove-song-form">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></button>
+                                        </form>
+                                        <a href="{% url 'add_to_playlist' %}?deezer_id={{ song.deezer_id }}&title={{ song.title|urlencode }}&artist={{ song.artist.name|urlencode }}&preview_url={{ song.preview_url|urlencode }}&cover_url={{ song.cover_url|urlencode }}" class="btn btn-success btn-playlist" title="Добавить в плейлист">
+                                            <i class="fas fa-plus"></i> В плейлист
+                                        </a>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    В избранном пока нет песен. Добавьте песни из <a href="{% url 'search' %}">поиска</a>.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // восстановление прокрутки при переходе на страницу
+    const urlParams = new URLSearchParams(window.location.hash.substring(1));
+    const scrollPos = urlParams.get('scroll');
+    if (scrollPos) {
+        window.scrollTo(0, parseInt(scrollPos));
+    }
+
+    // сохранение прокрутки при клике на кнопку "Добавить в плейлист"
+    document.querySelectorAll('.btn-playlist').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            const currentScroll = window.scrollY;
+            const href = this.getAttribute('href');
+            this.setAttribute('href', `${href}#scroll=${currentScroll}`);
+        });
+    });
+
+    // Play/pause по клику на всю обложку
+    document.querySelectorAll('.play-cover-area').forEach(function(cover) {
+        cover.addEventListener('click', function(e) {
+            const btn = cover.querySelector('.play-pause-overlay-btn');
+            if (!btn) return;
+            if (e.target.closest('.play-pause-overlay-btn')) return;
+            window.playInGlobalPlayer({
+                title: btn.dataset.title,
+                artist: btn.dataset.artist,
+                cover: btn.dataset.cover,
+                url: btn.dataset.url
+            });
+        });
+    });
+
+    // Play/pause по кнопке
+    document.querySelectorAll('.play-pause-overlay-btn').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            window.playInGlobalPlayer({
+                title: btn.dataset.title,
+                artist: btn.dataset.artist,
+                cover: btn.dataset.cover,
+                url: btn.dataset.url
+            });
+        });
+    });
+
+    // Обработка прогресс-бара и времени
+    const globalPlayerAudio = document.getElementById('global-player-audio');
+    if (globalPlayerAudio) {
+        globalPlayerAudio.addEventListener('timeupdate', function() {
+            const currentTime = this.currentTime;
+            const duration = this.duration;
+            const progress = (currentTime / duration) * 100;
+            
+            // Обновляем прогресс-бар и время для текущего трека
+            document.querySelectorAll('.track-progress').forEach(function(progressBar) {
+                const card = progressBar.closest('.card');
+                const playBtn = card.querySelector('.play-pause-overlay-btn');
+                
+                if (playBtn && playBtn.dataset.url === globalPlayerAudio.src) {
+                    progressBar.querySelector('.progress-bar').style.width = progress + '%';
+                    progressBar.querySelector('.current-time').textContent = formatTime(currentTime);
+                    progressBar.querySelector('.duration').textContent = formatTime(duration);
+                }
+            });
+        });
+
+        globalPlayerAudio.addEventListener('loadedmetadata', function() {
+            const duration = this.duration;
+            document.querySelectorAll('.track-progress').forEach(function(progressBar) {
+                const card = progressBar.closest('.card');
+                const playBtn = card.querySelector('.play-pause-overlay-btn');
+                
+                if (playBtn && playBtn.dataset.url === globalPlayerAudio.src) {
+                    progressBar.querySelector('.duration').textContent = formatTime(duration);
+                }
+            });
+        });
+    }
+
+    // Функция форматирования времени
+    function formatTime(seconds) {
+        if (isNaN(seconds)) return '0:00';
+        const minutes = Math.floor(seconds / 60);
+        seconds = Math.floor(seconds % 60);
+        return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
+    }
+
+    // Асинхронное удаление трека из избранного (Моя музыка)
+    document.querySelectorAll('.remove-song-form').forEach(function(form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(form);
+            fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    form.closest('.col-md-4').remove();
+                } else {
+                    alert(data.message || 'Ошибка удаления');
+                }
+                // Скрыть overlay после завершения
+                const overlay = document.querySelector('.loading-overlay');
+                if (overlay) overlay.style.display = 'none';
+            })
+            .catch(() => {
+                alert('Ошибка удаления');
+                const overlay = document.querySelector('.loading-overlay');
+                if (overlay) overlay.style.display = 'none';
+            });
+        });
+    });
+});
+</script>
+{% endblock %} 

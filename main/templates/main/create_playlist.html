@@ -1,0 +1,41 @@
+{% extends 'main/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="text-center">Создание нового плейлиста</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{% url 'create_playlist' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.META.HTTP_REFERER }}">
+                        <input type="hidden" name="scroll_position" id="scrollPosition">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Название плейлиста</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">Создать плейлист</button>
+                            <a href="{{ request.META.HTTP_REFERER }}" class="btn btn-secondary">Отмена</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Получаем scroll position из URL hash
+    const urlParams = new URLSearchParams(window.location.hash.substring(1));
+    const scrollPos = urlParams.get('scroll');
+    if (scrollPos) {
+        document.getElementById('scrollPosition').value = scrollPos;
+    }
+});
+</script>
+{% endblock %} 

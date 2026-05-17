@@ -1,0 +1,55 @@
+{% extends 'main/base.html' %}
+
+{% block content %}
+<div class="mb-3">
+    <a href="{% url 'home' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Назад к моей музыке
+    </a>
+</div>
+<div class="container mt-4">
+    <h1 class="mb-4">Управление плейлистами</h1>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <h2>Создать новый плейлист</h2>
+            <form method="post" action="{% url 'create_playlist' %}">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="name" class="form-label">Название плейлиста</label>
+                    <input type="text" class="form-control" id="name" name="name" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Создать плейлист</button>
+            </form>
+        </div>
+        
+        <div class="col-md-6">
+            <h2>Существующие плейлисты</h2>
+            {% if playlists %}
+                <div class="list-group">
+                    {% for playlist in playlists %}
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="mb-1">{{ playlist.name }}</h5>
+                                <small>Создан: {{ playlist.created_at|date:"d.m.Y" }}</small>
+                            </div>
+                            <div>
+                                <a href="{% url 'rename_playlist' playlist.id %}" class="btn btn-sm btn-primary">Переименовать</a>
+                                <form action="{% url 'delete_playlist' playlist.id %}" method="post" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return">Удалить</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    Плейлисты еще не созданы.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

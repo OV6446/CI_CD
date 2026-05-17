@@ -1,0 +1,30 @@
+{% extends 'main/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card delete-account-card">
+                <div class="card-header">
+                    <h3 class="text-center">Удаление аккаунта</h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Внимание!</strong> Это действие нельзя отменить. Все ваши данные будут удалены безвозвратно.
+                    </div>
+                    <form method="post" onsubmit="clearPlayerState()">
+                        {% csrf_token %}
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-danger" onclick="return confirm('Вы уверены, что хотите удалить свой аккаунт? Это действие нельзя отменить.')">
+                                <i class="fas fa-trash-alt"></i> Удалить аккаунт
+                            </button>
+                            <a href="{% url 'home' %}" class="btn btn-secondary">Отмена</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

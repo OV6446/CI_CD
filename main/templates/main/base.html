@@ -1,0 +1,1675 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Музыкальная библиотека{% endblock %}</title>
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/plyr@3.7.8/dist/plyr.css" />
+    <style>
+        /* Светлая тема */
+        :root[data-theme="light"] {
+            --primary-color: #1DB954;
+            --secondary-color: #f8f9fa;
+            --text-color: #212529;
+            --text-secondary: #6c757d;
+            --hover-color: #1ed760;
+            --card-bg: #ffffff;
+            --body-bg: #f8f9fa;
+            --border-color: #dee2e6;
+            --gradient-primary: linear-gradient(135deg, #1DB954 0%, #1ed760 100%);
+            --gradient-secondary: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Темная тема */
+        :root[data-theme="dark"] {
+            --primary-color: #1DB954;
+            --secondary-color: #1a1a1a;
+            --text-color: #ffffff;
+            --text-secondary: #e0e0e0;
+            --hover-color: #1ed760;
+            --card-bg: #242424;
+            --body-bg: #121212;
+            --border-color: #333333;
+            --gradient-primary: linear-gradient(135deg, #1DB954 0%, #1ed760 100%);
+            --gradient-secondary: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+            --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Основные стили страницы */
+        body {
+            background-color: var(--body-bg);
+            color: var(--text-color);
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            min-height: 100vh;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Стили навигационной панели */
+        .navbar {
+            background: var(--gradient-secondary) !important;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            padding: 1rem 1.5rem;
+            margin-bottom: 2.2rem;
+            backdrop-filter: blur(5px);
+            border-bottom: 1px solid var(--border-color);
+            position: relative;
+            z-index: 100;
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--text-color) !important;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            letter-spacing: -0.5px;
+            padding: 0.25rem 0;
+        }
+
+        .navbar-nav .nav-link {
+            color: var(--text-color) !important;
+            padding: 0.32rem 1.1rem;
+            margin: 0 0.12rem;
+            border-radius: 25px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 600;
+            position: relative;
+            overflow: hidden;
+            font-size: 1.05rem;
+        }
+
+        .navbar-nav {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+        }
+
+        .navbar-nav:last-of-type {
+            margin-left: 2.5rem;
+        }
+
+        .navbar-nav .nav-link i {
+            margin-right: 0.8rem;
+            font-size: 1.1rem;
+        }
+
+        .navbar-nav .nav-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--gradient-primary);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: -1;
+        }
+
+        .navbar-nav .nav-link:hover::before {
+            opacity: 1;
+        }
+
+        .navbar-nav .nav-link.active {
+            background: var(--gradient-primary);
+            color: var(--text-color) !important;
+            font-weight: 600;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .navbar-nav .nav-link.user-info {
+            pointer-events: auto;
+            background: none !important;
+            color: var(--text-color) !important;
+            cursor: pointer;
+            box-shadow: none !important;
+        }
+
+        .navbar-nav .nav-link.user-info:hover, 
+        .navbar-nav .nav-link.user-info:focus {
+            background: var(--gradient-primary) !important;
+            color: var(--text-color) !important;
+            box-shadow: none !important;
+        }
+
+        .dropdown-menu {
+            background: var(--gradient-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 15px;
+            box-shadow: var(--card-shadow);
+            padding: 0.5rem;
+            min-width: 200px;
+        }
+
+        .dropdown-item {
+            color: var(--text-color);
+            padding: 0.5rem 1rem;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .dropdown-item:hover {
+            background: var(--gradient-primary);
+            color: var(--text-color);
+        }
+
+        .dropdown-item.text-danger {
+            color: #dc3545 !important;
+        }
+
+        .dropdown-item.text-danger:hover {
+            background: #dc3545;
+            color: white !important;
+        }
+
+        .dropdown-divider {
+            border-color: var(--border-color);
+            margin: 0.5rem 0;
+        }
+
+        .dropdown-item i {
+            margin-right: 0.5rem;
+            width: 1rem;
+            text-align: center;
+        }
+
+        /* Стили карточек */
+        .card {
+            background: var(--gradient-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 15px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-bottom: 1.5rem;
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
+            border-color: var(--primary-color);
+        }
+
+        /* Запретить при наведении курсора мыши для определенных блоков . */
+        .card.search-history-card:hover,
+        .card.genre-filter-card:hover,
+        .card.playlist-card:hover,
+        .card.artist-filter-card:hover,
+        .card.radio-card:hover,
+        .card.auth-card:hover,
+        .card.change-username-card:hover,
+        .card.change-password-card:hover,
+        .card.delete-account-card:hover {
+            transform: none;
+            box-shadow: var(--card-shadow);
+        }
+
+        .card.auth-card {
+            transition: none;
+        }
+
+        .card-title {
+            color: var(--text-color);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+            letter-spacing: -0.5px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-text {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-body {
+            padding: 1rem;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: flex-start;
+        }
+
+        .card-actions .btn {
+            flex: 0 0 auto;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+        }
+
+        /* Стили кнопок */
+        .btn-primary {
+            background: var(--gradient-primary);
+            border: none;
+            border-radius: 25px;
+            padding: 0.7rem 1.8rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.9rem;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(29, 185, 84, 0.3);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            border: none;
+            border-radius: 25px;
+            padding: 0.7rem 1.8rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.9rem;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: var(--gradient-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 25px;
+            padding: 0.7rem 1.8rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.9rem;
+            color: var(--text-color);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            color: var(--text-color);
+        }
+
+        .btn-sm {
+            padding: 0.4rem 1rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .btn-playlist {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+            height: 36px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .btn-playlist i {
+            font-size: 0.9rem;
+        }
+
+        .btn-group .btn {
+            margin-right: 0.5rem;
+            border-radius: 25px;
+        }
+
+        .alert {
+            border-radius: 15px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--card-shadow);
+            font-weight: 500;
+            padding: 1rem 1.5rem;
+        }
+
+        .container {
+            padding: 0.7rem 1.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .navbar .container {
+            padding-bottom: 0;
+        }
+
+        .container:not(.navbar .container) {
+            padding-bottom: 80px;
+        }
+
+        audio {
+            width: 100% !important;
+            min-width: 200px !important;
+            max-width: 100% !important;
+            height: 40px !important;
+        }
+
+        audio::-webkit-media-controls-panel {
+            background-color: #f8f9fa;
+        }
+
+        audio::-webkit-media-controls-current-time-display,
+        audio::-webkit-media-controls-time-remaining-display {
+            color: #000;
+        }
+
+        audio::-webkit-media-controls-timeline {
+            background-color: #e9ecef;
+            border-radius: 25px;
+            margin-left: 10px;
+            margin-right: 10px;
+        }
+
+        audio::-webkit-media-controls-volume-slider {
+            background-color: #e9ecef;
+            border-radius: 25px;
+            padding-left: 8px;
+            padding-right: 8px;
+        }
+
+        .form-control {
+            background: var(--gradient-secondary);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            border-radius: 25px;
+            padding: 0.9rem 1.2rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+            opacity: 1;
+        }
+        .form-control::-webkit-input-placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        .form-control::-moz-placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        .form-control:-ms-input-placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        .form-control:-moz-placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Стили для кнопки очистки в поле поиска */
+        .form-control::-webkit-search-cancel-button {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 16px;
+            width: 16px;
+            background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236c757d'><path d='M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z'/></svg>") no-repeat center center;
+            cursor: pointer;
+            position: relative;
+            right: 0;
+            margin-right: 8px;
+        }
+
+        .form-control::-webkit-search-cancel-button:hover {
+            background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23dc3545'><path d='M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z'/></svg>") no-repeat center center;
+        }
+
+        .form-control:focus {
+            background: var(--gradient-secondary);
+            color: var(--text-color);
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(29, 185, 84, 0.25);
+            transform: translateY(-2px);
+        }
+
+        .nav-link i {
+            margin-right: 0.6rem;
+            font-size: 1.1rem;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            color: var(--text-color);
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        p, span, div {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            line-height: 1.7;
+            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+        }
+
+        .text-muted {
+            color: #a0a0a0 !important;
+            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+        }
+
+        .table {
+            color: var(--text-color);
+            border-radius: 15px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--card-shadow);
+        }
+
+        .table th {
+            color: var(--text-color);
+            font-weight: 600;
+            border-bottom: 2px solid var(--primary-color);
+            background: var(--gradient-secondary);
+            padding: 1rem 1.5rem;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .table td {
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 1.5rem;
+            transition: background-color 0.3s ease;
+            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+        }
+
+        .table tr:hover td {
+            background-color: rgba(29, 185, 84, 0.15);
+            color: var(--text-color);
+        }
+
+        .list-group-item {
+            background: var(--gradient-secondary);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 1rem 1.5rem;
+            transition: all 0.3s ease;
+            margin-bottom: 0.5rem;
+            border-radius: 10px;
+        }
+
+        .list-group-item:hover {
+            transform: translateX(5px);
+            background: var(--gradient-primary);
+            border-color: var(--primary-color);
+        }
+
+        .modal-content {
+            background: var(--gradient-secondary);
+            color: var(--text-color);
+            border-radius: 15px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--card-shadow);
+        }
+
+        .modal-header {
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.5rem;
+        }
+
+        .modal-footer {
+            border-top: 1px solid var(--border-color);
+            padding: 1.5rem;
+        }
+
+        /* Анимации */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card, .alert, .table {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* Кастомный скроллбар */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--secondary-color);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--hover-color);
+        }
+
+        .theme-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+            margin-left: 1rem;
+        }
+
+        .theme-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .theme-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--border-color);
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .theme-slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: #14b51f;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .theme-slider {
+            background: #3a3939;
+        }
+
+        input:checked + .theme-slider:before {
+            transform: translateX(26px);
+        }
+
+        .theme-slider i {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 16px;
+            color: var(--text-color);
+        }
+
+        .theme-slider i.fa-sun {
+            left: 8px;
+        }
+
+        .theme-slider i.fa-moon {
+            right: 8px;
+        }
+
+        /* Стили для кнопок действий */
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+
+        .action-btn {
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 0.4rem 0.8rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            white-space: nowrap;
+            text-decoration: none;
+            min-width: fit-content;
+        }
+
+        .action-btn i {
+            font-size: 0.9rem;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(29, 185, 84, 0.3);
+            color: white;
+        }
+
+        .action-btn.delete {
+            background: linear-gradient(135deg, #dc3545 0%, #ff4d5e 100%);
+        }
+
+        .action-btn.edit {
+            background: linear-gradient(135deg, #ffc107 0%, #ffd54f 100%);
+        }
+
+        /* Адаптивные стили */
+        @media (max-width: 768px) {
+            .navbar-nav {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .navbar-nav .nav-link {
+                padding: 0.3rem 0.6rem;
+                font-size: 0.85rem;
+            }
+
+            .action-buttons {
+                justify-content: center;
+            }
+
+            .action-btn {
+                padding: 0.3rem 0.6rem;
+                font-size: 0.8rem;
+            }
+
+            .card-actions {
+                justify-content: center;
+            }
+
+            .card-actions .btn {
+                flex: 1 1 auto;
+                min-width: 0;
+                padding: 0.4rem 0.8rem;
+                font-size: 0.8rem;
+            }
+        }
+
+        /* Улучшенные стили для навигации */
+        .navbar-collapse {
+            position: relative;
+            z-index: 100;
+        }
+
+        :root[data-theme="dark"] audio {
+            background: #222 !important;
+            border: 1px solid #444 !important;
+            color: #fff !important;
+            filter: brightness(1.2) contrast(1.2);
+        }
+        :root[data-theme="dark"] .btn-primary, :root[data-theme="dark"] .btn-success, :root[data-theme="dark"] .btn-danger, :root[data-theme="dark"] .btn-secondary {
+            color: #fff !important;
+            border: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            filter: brightness(1.1) contrast(1.2);
+        }
+        :root[data-theme="dark"] .btn-primary {
+            background: linear-gradient(135deg, #1DB954 0%, #1ed760 100%) !important;
+        }
+        :root[data-theme="dark"] .btn-success {
+            background: linear-gradient(135deg, #28a745 0%, #43e97b 100%) !important;
+        }
+        :root[data-theme="dark"] .btn-danger {
+            background: linear-gradient(135deg, #dc3545 0%, #ff4d5e 100%) !important;
+        }
+        :root[data-theme="dark"] .btn-secondary {
+            background: linear-gradient(135deg, #444 0%, #222 100%) !important;
+        }
+        :root[data-theme="dark"] .plyr,
+        :root[data-theme="dark"] .plyr--audio {
+            background: #181c1f !important;
+            border-radius: 16px !important;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.5);
+        }
+        :root[data-theme="dark"] .plyr__controls {
+            background: #23272b !important;
+            border-radius: 0 0 16px 16px !important;
+        }
+        :root[data-theme="dark"] .plyr__control,
+        :root[data-theme="dark"] .plyr__progress,
+        :root[data-theme="dark"] .plyr__time {
+            color: #fff !important;
+            filter: brightness(1.2) contrast(1.2);
+        }
+        :root[data-theme="dark"] .plyr__progress--played,
+        :root[data-theme="dark"] .plyr__volume--display {
+            background: #1DB954 !important;
+        }
+
+        .audio-player-wrapper {
+            margin: 0 -1rem 0.5rem -1rem; /* растягиваем на всю ширину карточки */
+            padding: 0;
+        }
+        .audio-player-wrapper audio {
+            width: 100% !important;
+            min-width: 250px !important;
+            max-width: 100% !important;
+            height: 44px !important;
+            margin-bottom: 0;
+        }
+
+        /* Глобальный аудиоплеер */
+        #global-player-bar {
+            position: fixed;
+            left: 50%;
+            bottom: 24px;
+            transform: translateX(-50%);
+            z-index: 2000;
+            background: var(--gradient-secondary);
+            box-shadow: 0 -2px 16px rgba(0,0,0,0.15), 0 2px 16px rgba(0,0,0,0.10);
+            padding: 1rem 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 1.8rem;
+            min-height: 80px;
+            max-width: 1200px;
+            width: 96vw;
+            border-radius: 24px;
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #global-player-bar.collapsed {
+            transform: translateX(-50%) translateY(calc(100% + 24px));
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #global-player-expand {
+            position: fixed;
+            left: 50%;
+            bottom: 24px;
+            transform: translateX(-50%);
+            z-index: 2001;
+            background: var(--gradient-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            color: var(--text-color);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #global-player-expand:hover {
+            background: var(--gradient-primary);
+            color: white;
+        }
+
+        #global-player-expand.visible {
+            display: flex;
+            opacity: 1;
+        }
+
+        #global-player-cover {
+            width: 64px !important;
+            height: 64px !important;
+            border-radius: 16px !important;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.25) !important;
+            transition: all 0.3s ease;
+            object-fit: cover;
+        }
+
+        #global-player-cover:hover {
+            transform: scale(1.05) rotate(2deg);
+        }
+
+        #global-player-info {
+            flex: 1;
+            min-width: 0;
+            padding-right: 1rem;
+        }
+
+        #global-player-title {
+            font-weight: 700;
+            font-size: 1.2rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: var(--text-color);
+            margin-bottom: 0.3rem;
+            letter-spacing: -0.5px;
+        }
+
+        #global-player-artist {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-weight: 500;
+        }
+
+        #global-player-audio {
+            width: 600px !important;
+            max-width: 50vw !important;
+            min-width: 300px !important;
+            height: 56px !important;
+            border-radius: 16px !important;
+            background: var(--gradient-secondary) !important;
+            border: 1px solid var(--border-color) !important;
+            padding: 0 1rem !important;
+        }
+
+        /* Стилизация аудио элементов */
+        #global-player-audio::-webkit-media-controls-panel {
+            background: var(--gradient-secondary) !important;
+            border-radius: 16px !important;
+            padding: 0 1rem !important;
+        }
+
+        #global-player-audio::-webkit-media-controls-current-time-display,
+        #global-player-audio::-webkit-media-controls-time-remaining-display {
+            color: var(--text-color) !important;
+            font-weight: 500 !important;
+            font-size: 0.9rem !important;
+            min-width: 45px !important;
+        }
+
+        #global-player-audio::-webkit-media-controls-timeline {
+            background: var(--border-color) !important;
+            border-radius: 25px !important;
+            height: 6px !important;
+            margin: 0 15px !important;
+            flex-grow: 1 !important;
+        }
+
+        #global-player-audio::-webkit-media-controls-timeline::-webkit-slider-thumb {
+            background: var(--primary-color) !important;
+            border-radius: 50% !important;
+            width: 14px !important;
+            height: 14px !important;
+            margin-top: -4px !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
+        }
+
+        #global-player-audio::-webkit-media-controls-volume-slider {
+            background: var(--border-color) !important;
+            border-radius: 25px !important;
+            height: 6px !important;
+            margin: 0 10px !important;
+            width: 80px !important;
+        }
+
+        #global-player-audio::-webkit-media-controls-volume-slider::-webkit-slider-thumb {
+            background: var(--primary-color) !important;
+            border-radius: 50% !important;
+            width: 14px !important;
+            height: 14px !important;
+            margin-top: -4px !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
+        }
+
+        #global-player-close {
+            width: 40px !important;
+            height: 40px !important;
+            padding: 0 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            border-radius: 50% !important;
+            background: var(--gradient-secondary) !important;
+            border: 1px solid var(--border-color) !important;
+            transition: all 0.3s ease !important;
+            font-size: 1.1rem !important;
+        }
+
+        #global-player-close:hover {
+            background: var(--gradient-primary) !important;
+            border-color: var(--primary-color) !important;
+        }
+
+        @media (max-width: 992px) {
+            #global-player-bar {
+                padding: 0.8rem 1.5rem;
+                gap: 1.5rem;
+                min-height: 72px;
+            }
+            #global-player-cover {
+                width: 56px !important;
+                height: 56px !important;
+            }
+            #global-player-audio {
+                width: 400px !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            #global-player-bar {
+                padding: 0.7rem 1.2rem;
+                gap: 1.2rem;
+                min-height: 68px;
+            }
+            #global-player-cover {
+                width: 48px !important;
+                height: 48px !important;
+            }
+            #global-player-audio {
+                width: 300px !important;
+            }
+            #global-player-title {
+                font-size: 1.1rem;
+            }
+            #global-player-artist {
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #global-player-bar {
+                padding: 0.6rem 1rem;
+                gap: 1rem;
+                min-height: 64px;
+            }
+            #global-player-cover {
+                width: 40px !important;
+                height: 40px !important;
+            }
+            #global-player-audio {
+                width: 200px !important;
+            }
+            #global-player-title {
+                font-size: 0.95rem;
+            }
+            #global-player-artist {
+                font-size: 0.85rem;
+            }
+        }
+
+        .track-progress {
+            margin-top: 0.5rem;
+        }
+
+        .track-progress .progress {
+            background-color: rgba(0, 0, 0, 0.1);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .track-progress .progress-bar {
+            background: var(--primary-color);
+            transition: width 0.1s linear;
+        }
+
+        .track-progress small {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+        }
+
+        /* Кнопка прокрутки вверх */
+        .scroll-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background: var(--gradient-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-decoration: none;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(29, 185, 84, 0.3);
+            z-index: 1000;
+        }
+
+        .scroll-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .scroll-to-top:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(29, 185, 84, 0.4);
+            color: white;
+        }
+
+        .alert-danger {
+            background-color: rgba(255, 107, 107, 0.15);
+            border-color: rgba(255, 107, 107, 0.3);
+            color: #ff9e9e;
+            font-weight: 500;
+            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+        }
+
+        .alert-success {
+            background-color: rgba(29, 185, 84, 0.15);
+            border-color: rgba(29, 185, 84, 0.3);
+            color: #1db954;
+            font-weight: 500;
+            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+        }
+
+        :root[data-theme="dark"] .alert-danger {
+            background-color: rgba(255, 140, 140, 0.2);
+            border-color: rgba(255, 140, 140, 0.4);
+            color: #ffb3b3;
+            font-weight: 500;
+            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+        }
+
+        :root[data-theme="dark"] .alert-success {
+            background-color: rgba(29, 185, 84, 0.2);
+            border-color: rgba(29, 185, 84, 0.4);
+            color: #1ed760;
+            font-weight: 500;
+            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Loading Overlay Styles */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            backdrop-filter: blur(3px);
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid var(--primary-color);
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .btn-success {
+            background: var(--gradient-success);
+            border: 1px solid var(--border-color);
+            border-radius: 25px;
+            padding: 0.7rem 1.8rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.9rem;
+            color: var(--text-color);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            color: var(--text-color);
+        }
+
+        .card-img-top {
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .cover-wrapper {
+            height: 200px;
+            overflow: hidden;
+        }
+
+        .btn-icon {
+            width: 36px;
+            height: 36px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-icon i {
+            font-size: 1rem;
+            margin: 0;
+        }
+
+        .btn-icon.btn-primary {
+            background: var(--gradient-primary);
+        }
+
+        .btn-icon.btn-danger {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        }
+
+        .btn-icon:hover {
+            transform: translateY(-2px) scale(1.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .genre-warning-inline {
+            display: inline-block;
+            max-width: 480px;
+            margin: 0.5rem 0;
+            padding: 0.5rem 1rem;
+            white-space: normal;
+        }
+    </style>
+</head>
+<body>
+    <!-- Загрузочный экран -->
+    <div class="loading-overlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'home' %}">
+                <i class="fas fa-music"></i> Музыкальная библиотека
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'home' or request.GET.next == '/' %}active{% endif %}" href="{% url 'home' %}">
+                            <i class="fas fa-home"></i> Моя музыка
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'search' or request.GET.next == '/search/' %}active{% endif %}" href="{% url 'search' %}">
+                            <i class="fas fa-search"></i> Поиск
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'radio' or request.GET.next == '/radio/' %}active{% endif %}" href="{% url 'radio' %}">
+                            <i class="fas fa-broadcast-tower"></i> Радио
+                        </a>
+                    </li>
+                    {% if user.is_staff %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'manage_users' or request.GET.next == '/manage_users/' %}active{% endif %}" href="{% url 'manage_users' %}">
+                            <i class="fas fa-users-cog"></i> Управление пользователями
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item d-flex align-items-center">
+                        <label class="theme-switch">
+                            <input type="checkbox" id="theme-toggle">
+                            <span class="theme-slider">
+                                <i class="fas fa-sun"></i>
+                                <i class="fas fa-moon"></i>
+                            </span>
+                        </label>
+                    </li>
+                    {% if user.is_authenticated %}
+                        <li class="nav-item dropdown">
+                            <span class="nav-link user-info dropdown-toggle" data-bs-toggle="dropdown" style="cursor: pointer;">
+                                <i class="fas fa-user"></i> Привет, {{ user.username }}
+                            </span>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'change_username' %}">
+                                        <i class="fas fa-user-edit"></i> Изменить имя
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'change_password' %}">
+                                        <i class="fas fa-key"></i> Изменить пароль
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item text-danger" href="{% url 'delete_account' %}">
+                                        <i class="fas fa-trash-alt"></i> Удалить аккаунт
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="nav-item">
+                            <form method="post" action="{% url 'logout' %}" class="d-inline" onsubmit="clearPlayerState()">
+                                {% csrf_token %}
+                                <button type="submit" class="nav-link btn btn-link" style="border: none; background: none; padding: 0.6rem 1.2rem;">
+                                    <i class="fas fa-sign-out-alt"></i> Выйти
+                                </button>
+                            </form>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'login' %}">
+                                <i class="fas fa-sign-in-alt"></i> Войти
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'register' %}">
+                                <i class="fas fa-user-plus"></i> Регистрация
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        {% if messages %}
+          <div class="mt-3">
+            {% for message in messages %}
+              <div class="alert {% if message.tags == 'success' %}alert-success{% else %}alert-danger{% endif %} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <!-- Глобальный аудиоплеер -->
+    {% if user.is_authenticated and request.resolver_match.url_name not in 'login,register,logout' %}
+    <div id="global-player-bar">
+        <img id="global-player-cover" src="" alt="Обложка" style="display:none;">
+        <div id="global-player-info">
+            <div id="global-player-title">Выберите трек для прослушивания</div>
+            <div id="global-player-artist"></div>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <button id="global-player-prev" class="btn btn-outline-secondary btn-sm" title="Предыдущий трек">
+                <i class="fas fa-step-backward"></i>
+            </button>
+            <audio id="global-player-audio" controls></audio>
+            <button id="global-player-next" class="btn btn-outline-secondary btn-sm" title="Следующий трек">
+                <i class="fas fa-step-forward"></i>
+            </button>
+        </div>
+        <button id="global-player-close" class="btn btn-outline-secondary btn-sm" title="Свернуть плеер"><i class="fas fa-chevron-down"></i></button>
+    </div>
+    <button id="global-player-expand" title="Развернуть плеер"><i class="fas fa-chevron-up"></i></button>
+    {% endif %}
+
+    <button class="scroll-to-top" id="scrollToTop">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/plyr@3.7.8/dist/plyr.polyfilled.min.js"></script>
+    <script>
+        // Функция очистки состояния плеера
+        function clearPlayerState() {
+            if (window.globalPlayerState) {
+                window.globalPlayerState.currentTrack = null;
+                window.globalPlayerState.isPlaying = false;
+                window.globalPlayerState.currentTime = 0;
+                localStorage.removeItem('globalPlayerState');
+            }
+        }
+
+        // Проверяем сохраненную тему
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        document.getElementById('theme-toggle').checked = savedTheme === 'dark';
+
+        // Обработчик переключения темы
+        document.getElementById('theme-toggle').addEventListener('change', function() {
+            const theme = this.checked ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+        });
+
+        // Останавливать другие аудио при воспроизведении одного
+        document.addEventListener('play', function(e){
+            if(e.target.tagName === 'AUDIO'){
+                var audios = document.getElementsByTagName('audio');
+                for(var i = 0, len = audios.length; i < len; i++){
+                    if(audios[i] !== e.target){
+                        audios[i].pause();
+                    }
+                }
+            }
+        }, true);
+
+        // Инициализация Plyr для всех аудио
+        document.addEventListener('DOMContentLoaded', function() {
+            window.plyrPlayers = [];
+            document.querySelectorAll('audio').forEach(function(el) {
+                window.plyrPlayers.push(new Plyr(el, {
+                    controls: ['play', 'progress', 'current-time', 'mute', 'volume'],
+                    hideControls: false,
+                    resetOnEnd: true,
+                    seekTime: 5
+                }));
+            });
+        });
+
+        // Глобальный плеер: управление и интеграция с карточками песен
+        const globalPlayerBar = document.getElementById('global-player-bar');
+        const globalPlayerAudio = document.getElementById('global-player-audio');
+        const globalPlayerTitle = document.getElementById('global-player-title');
+        const globalPlayerArtist = document.getElementById('global-player-artist');
+        const globalPlayerCover = document.getElementById('global-player-cover');
+        const globalPlayerClose = document.getElementById('global-player-close');
+        const globalPlayerExpand = document.getElementById('global-player-expand');
+        const globalPlayerPrev = document.getElementById('global-player-prev');
+        const globalPlayerNext = document.getElementById('global-player-next');
+
+        // Функция для получения списка доступных треков
+        function getAvailableTracks() {
+            return Array.from(document.querySelectorAll('.play-pause-overlay-btn')).map(btn => ({
+                title: btn.dataset.title,
+                artist: btn.dataset.artist,
+                cover: btn.dataset.cover,
+                url: btn.dataset.url
+            }));
+        }
+
+        // Функция для воспроизведения предыдущего трека
+        function playPreviousTrack() {
+            const tracks = getAvailableTracks();
+            if (tracks.length === 0) return;
+
+            const currentIndex = tracks.findIndex(track => track.url === window.globalPlayerState.currentTrack);
+            const prevIndex = currentIndex <= 0 ? tracks.length - 1 : currentIndex - 1;
+            const prevTrack = tracks[prevIndex];
+
+            window.playInGlobalPlayer(prevTrack);
+        }
+
+        // Функция для воспроизведения следующего трека
+        function playNextTrack() {
+            const tracks = getAvailableTracks();
+            if (tracks.length === 0) return;
+
+            const currentIndex = tracks.findIndex(track => track.url === window.globalPlayerState.currentTrack);
+            const nextIndex = (currentIndex + 1) % tracks.length;
+            const nextTrack = tracks[nextIndex];
+
+            window.playInGlobalPlayer(nextTrack);
+        }
+
+        // обработчики для кнопок навигации
+        if (globalPlayerPrev && globalPlayerNext) {
+            globalPlayerPrev.addEventListener('click', playPreviousTrack);
+            globalPlayerNext.addEventListener('click', playNextTrack);
+        }
+
+        // Свернуть/развернуть плеер
+        if(globalPlayerClose && globalPlayerExpand) {
+            globalPlayerClose.onclick = () => {
+                globalPlayerBar.classList.add('collapsed');
+                setTimeout(() => {
+                    globalPlayerExpand.classList.add('visible');
+                }, 300);
+            };
+
+            globalPlayerExpand.onclick = () => {
+                globalPlayerExpand.classList.remove('visible');
+                globalPlayerBar.classList.remove('collapsed');
+            };
+        }
+
+        // Глобальное состояние плеера
+        window.globalPlayerState = {
+            currentTrack: null,
+            isPlaying: false,
+            currentTime: 0,
+            updatePlayPauseIcons: function() {
+                document.querySelectorAll('.play-pause-overlay-btn').forEach(function(btn) {
+                    const btnUrl = btn.dataset.url;
+                    if (window.globalPlayerState.currentTrack === btnUrl && window.globalPlayerState.isPlaying) {
+                        btn.querySelector('i').classList.remove('fa-play');
+                        btn.querySelector('i').classList.add('fa-pause');
+                    } else {
+                        btn.querySelector('i').classList.remove('fa-pause');
+                        btn.querySelector('i').classList.add('fa-play');
+                    }
+                });
+            },
+            saveState: function() {
+                const state = {
+                    currentTrack: this.currentTrack,
+                    isPlaying: this.isPlaying,
+                    currentTime: globalPlayerAudio.currentTime,
+                    title: globalPlayerTitle.textContent,
+                    artist: globalPlayerArtist.textContent,
+                    cover: globalPlayerCover.src,
+                    volume: globalPlayerAudio.volume,
+                    muted: globalPlayerAudio.muted
+                };
+                localStorage.setItem('globalPlayerState', JSON.stringify(state));
+            },
+            loadState: function() {
+                const savedState = localStorage.getItem('globalPlayerState');
+                if (savedState) {
+                    const state = JSON.parse(savedState);
+                    if (state.currentTrack) {
+                        globalPlayerBar.style.display = 'flex';
+                        globalPlayerAudio.src = state.currentTrack;
+                        globalPlayerTitle.textContent = state.title;
+                        globalPlayerArtist.textContent = state.artist;
+                        if (state.cover) {
+                            globalPlayerCover.src = state.cover;
+                            globalPlayerCover.style.display = '';
+                        }
+                        this.currentTrack = state.currentTrack;
+                        this.currentTime = state.currentTime;
+
+                        // Восстанавливаем громкость и состояние mute
+                        if (typeof state.volume !== 'undefined') {
+                            globalPlayerAudio.volume = state.volume;
+                        }
+                        if (typeof state.muted !== 'undefined') {
+                            globalPlayerAudio.muted = state.muted;
+                        }
+
+                        // Восстанавливаем позицию и состояние воспроизведения
+                        globalPlayerAudio.currentTime = state.currentTime;
+                        if (state.isPlaying) {
+                            globalPlayerAudio.play();
+                        }
+                    }
+                }
+            }
+        };
+
+        // Функция для запуска трека в глобальном плеере
+        window.playInGlobalPlayer = function({title, artist, cover, url}) {
+            if (window.globalPlayerState.currentTrack === url) {
+                // Если это текущий трек, переключаем play/pause
+                if (window.globalPlayerState.isPlaying) {
+                    globalPlayerAudio.pause();
+                    window.globalPlayerState.isPlaying = false;
+                } else {
+                    globalPlayerAudio.play();
+                    window.globalPlayerState.isPlaying = true;
+                }
+            } else {
+                // Если это новый трек, начинаем его воспроизведение
+                globalPlayerBar.style.display = 'flex';
+                globalPlayerAudio.src = url;
+                globalPlayerTitle.textContent = title || '';
+                globalPlayerArtist.textContent = artist || '';
+                if (cover) {
+                    globalPlayerCover.src = cover;
+                    globalPlayerCover.style.display = '';
+                } else {
+                    globalPlayerCover.style.display = 'none';
+                }
+                window.globalPlayerState.currentTrack = url;
+                globalPlayerAudio.play();
+            }
+            window.globalPlayerState.updatePlayPauseIcons();
+            window.globalPlayerState.saveState();
+        };
+
+        // Обработчики событий для глобального плеера
+        if (globalPlayerAudio) {
+            globalPlayerAudio.addEventListener('play', function() {
+                window.globalPlayerState.isPlaying = true;
+                window.globalPlayerState.updatePlayPauseIcons();
+                window.globalPlayerState.saveState();
+            });
+
+            globalPlayerAudio.addEventListener('pause', function() {
+                window.globalPlayerState.isPlaying = false;
+                window.globalPlayerState.updatePlayPauseIcons();
+                window.globalPlayerState.saveState();
+            });
+
+            globalPlayerAudio.addEventListener('ended', function() {
+                // получаем все кнопки воспроизведения в текущем представлении
+                const playButtons = Array.from(document.querySelectorAll('.play-pause-overlay-btn'));
+                if (playButtons.length === 0) return;
+
+                // находим индекс текущего трека
+                const currentIndex = playButtons.findIndex(btn => btn.dataset.url === this.src);
+                if (currentIndex === -1) return;
+
+                // получаем следующий трек
+                const nextIndex = (currentIndex + 1) % playButtons.length;
+                const nextButton = playButtons[nextIndex];
+
+                // воспроизводим следующий трек
+                window.playInGlobalPlayer({
+                    title: nextButton.dataset.title,
+                    artist: nextButton.dataset.artist,
+                    cover: nextButton.dataset.cover,
+                    url: nextButton.dataset.url
+                });
+            });
+
+            globalPlayerAudio.addEventListener('timeupdate', function() {
+                const currentTime = this.currentTime;
+                const duration = this.duration;
+                const progress = (currentTime / duration) * 100;
+                
+                // Обновляем прогресс-бар и время для текущего трека
+                document.querySelectorAll('.track-progress').forEach(function(progressBar) {
+                    const card = progressBar.closest('.card');
+                    const playBtn = card.querySelector('.play-pause-overlay-btn');
+                    
+                    if (playBtn && playBtn.dataset.url === globalPlayerAudio.src) {
+                        progressBar.querySelector('.progress-bar').style.width = progress + '%';
+                        progressBar.querySelector('.current-time').textContent = formatTime(currentTime);
+                        progressBar.querySelector('.duration').textContent = formatTime(duration);
+                    } else {
+                        // Сбрасываем прогресс для других треков
+                        progressBar.querySelector('.progress-bar').style.width = '0%';
+                        progressBar.querySelector('.current-time').textContent = '0:00';
+                    }
+                });
+                
+                window.globalPlayerState.saveState();
+            });
+
+            globalPlayerAudio.addEventListener('loadedmetadata', function() {
+                const duration = this.duration;
+                document.querySelectorAll('.track-progress').forEach(function(progressBar) {
+                    const card = progressBar.closest('.card');
+                    const playBtn = card.querySelector('.play-pause-overlay-btn');
+                    
+                    if (playBtn && playBtn.dataset.url === globalPlayerAudio.src) {
+                        progressBar.querySelector('.duration').textContent = formatTime(duration);
+                    }
+                });
+            });
+
+            globalPlayerAudio.addEventListener('volumechange', function() {
+                window.globalPlayerState.saveState();
+            });
+
+            // Сохраняем состояние перед уходом со страницы
+            window.addEventListener('beforeunload', function() {
+                window.globalPlayerState.saveState();
+            });
+        }
+
+        // Функция форматирования времени
+        function formatTime(seconds) {
+            if (isNaN(seconds)) return '0:00';
+            const minutes = Math.floor(seconds / 60);
+            seconds = Math.floor(seconds % 60);
+            return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
+        }
+
+        // Загружаем сохраненное состояние при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            window.globalPlayerState.loadState();
+        });
+
+
+        
+        // 
+        const scrollToTopBtn = document.getElementById('scrollToTop');
+        
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                scrollToTopBtn.classList.add('visible');
+            } else {
+                scrollToTopBtn.classList.remove('visible');
+            }
+        });
+
+        scrollToTopBtn.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const loadingOverlay = document.querySelector('.loading-overlay');
+            
+            // показывает загрузочный экран при клике на ссылки
+            document.addEventListener('click', function(e) {
+                const link = e.target.closest('a');
+                if (link && !link.hasAttribute('data-no-loader') && 
+                    link.href && link.href.startsWith(window.location.origin)) {
+                    loadingOverlay.style.display = 'flex';
+                }
+            });
+
+            // показывает загрузочный экран при отправке формы
+            document.addEventListener('submit', function(e) {
+                if (!e.target.hasAttribute('data-no-loader')) {
+                    loadingOverlay.style.display = 'flex';
+                }
+            });
+
+            // скрывает загрузочный экран при загрузке страницы
+            window.addEventListener('load', function() {
+                loadingOverlay.style.display = 'none';
+            });
+        });
+    </script>
+</body>
+</html> 

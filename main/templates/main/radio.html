@@ -1,0 +1,113 @@
+{% extends 'main/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card radio-card">
+                <div class="card-body text-center">
+                    <h1 class="card-title mb-4">
+                        <i class="fas fa-broadcast-tower text-primary"></i> Радио
+                    </h1>
+                    <p class="card-text mb-4">
+                        Слушайте случайные песни в режиме радио.
+                    </p>
+                    <div id="radio-controls" class="mb-4">
+                        <button id="start-radio" class="btn btn-primary btn-lg">
+                            <i class="fas fa-play"></i> Запустить радио
+                        </button>
+                        <button id="stop-radio" class="btn btn-danger btn-lg" style="display: none;">
+                            <i class="fas fa-stop"></i> Остановить
+                        </button>
+                    </div>
+                    <div id="now-playing" class="mt-4" style="display: none;">
+                        <h3>Сейчас играет:</h3>
+                        <div class="current-track-info">
+                            <img id="current-cover" src="" alt="Обложка" class="mb-3" style="width: 200px; height: 200px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
+                            <h4 id="current-title" class="mb-2"></h4>
+                            <p id="current-artist" class="text-muted"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const startButton = document.getElementById('start-radio');
+    const stopButton = document.getElementById('stop-radio');
+    const nowPlaying = document.getElementById('now-playing');
+    const currentCover = document.getElementById('current-cover');
+    const currentTitle = document.getElementById('current-title');
+    const currentArtist = document.getElementById('current-artist');
+    let isPlaying = false;
+    let currentTrack = null;
+
+    // Функция для получения случайной песни
+    async function getRandomTrack() {
+        try {
+            const response = await fetch('/api/random-track/');
+            if (!response.ok) throw new Error('Network response was not ok');
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error('Error fetching random track:', error);
+            return null;
+        }
+    }
+
+    // Функция для воспроизведения следующей песни
+    async function playNextTrack() {
+        if (!isPlaying) return;
+
+        const track = await getRandomTrack();
+        if (!track) {
+            stopRadio();
+            return;
+        }
+
+        currentTrack = track;
+        currentCover.src = track.cover_url;
+        currentTitle.textContent = track.title;
+        currentArtist.textContent = track.artist.name;
+
+        window.playInGlobalPlayer({
+            title: track.title,
+            artist: track.artist.name,
+            cover: track.cover_url,
+            url: track.preview_url
+        });
+
+        // Когда трек закончится, запустим следующий
+        const audio = document.getElementById('global-player-audio');
+        audio.onended = playNextTrack;
+    }
+
+    // Функция для запуска радио
+    function startRadio() {
+        isPlaying = true;
+        startButton.style.display = 'none';
+        stopButton.style.display = 'inline-block';
+        nowPlaying.style.display = 'block';
+        playNextTrack();
+    }
+
+    // Функция для остановки радио
+    function stopRadio() {
+        isPlaying = false;
+        startButton.style.display = 'inline-block';
+        stopButton.style.display = 'none';
+        nowPlaying.style.display = 'none';
+        
+        const audio = document.getElementById('global-player-audio');
+        audio.pause();
+        audio.onended = null;
+    }
+
+    startButton.addEventListener('click', startRadio);
+    stopButton.addEventListener('click', stopRadio);
+});
+</script>
+{% endblock %} 

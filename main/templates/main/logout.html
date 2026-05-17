@@ -1,0 +1,27 @@
+{% extends 'main/base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="card-title">Выход из системы</h2>
+                    <p class="card-text">Вы успешно вышли из системы.</p>
+                    <p class="card-text">Перенаправление на главную страницу...</p>
+                    <div class="spinner-border text-primary mt-3" role="status" style="width: 3rem; height: 3rem;">
+                        <span class="visually-hidden">Загрузка...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Автоматическое перенаправление через 2 секунды
+    setTimeout(function() {
+        window.location.href = "{% url 'home' %}";
+    }, 2000);
+</script>
+{% endblock %} 
