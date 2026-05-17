@@ -1,0 +1,4 @@
+[bandit]
+# Исключаем venv и миграции; отчёт по прикладному коду
+exclude_dirs = venv,.git,__pycache__,migrations
+skips = B101

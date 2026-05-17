@@ -1,0 +1,159 @@
+# CI/CD с интеграцией автоматизированных проверок безопасности
+# Тема курсовой: инструменты security testing в CI/CD-процессах
+
+name: Security CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  # --- Базовые тесты (quality gate перед/параллельно security) ---
+  tests:
+    name: Функциональные тесты
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Установка зависимостей
+        run: pip install -r requirements.txt
+
+      - name: Django system check
+        run: python manage.py check
+
+      - name: Миграции
+        run: python manage.py migrate --noinput
+
+      - name: API-тесты
+        run: python test_api.py
+
+  # --- SAST: статический анализ исходного кода (Bandit) ---
+  sast-bandit:
+    name: SAST (Bandit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Установка Bandit
+        run: pip install bandit[toml]
+
+      - name: Сканирование Python-кода
+        run: |
+          bandit -r main myproject -f json -o bandit-report.json -c .bandit \
+            --severity-level medium
+          bandit -r main myproject -c .bandit --severity-level medium
+
+      - name: Сохранение отчёта
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bandit-report
+          path: bandit-report.json
+
+  # --- SCA: уязвимости в зависимостях (pip-audit) ---
+  sca-dependencies:
+    name: SCA (pip-audit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Установка pip-audit
+        run: pip install pip-audit
+
+      - name: Проверка requirements.txt
+        run: pip-audit -r requirements.txt --desc on
+
+  # --- Поиск секретов в репозитории (Gitleaks) ---
+  secrets-scan:
+    name: Secret scanning (Gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # --- Проверка настроек Django для production ---
+  django-deploy-check:
+    name: Django security check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Установка зависимостей
+        run: pip install -r requirements.txt
+
+      - name: check --deploy (предупреждения безопасности)
+        run: |
+          python manage.py check --deploy 2>&1 | tee django-deploy-check.txt
+          # В dev-проекте DEBUG=True — ожидаем предупреждения; не падаем, сохраняем отчёт
+        continue-on-error: true
+
+      - name: Сохранение отчёта
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: django-deploy-check
+          path: django-deploy-check.txt
+
+  # --- Сканирование Docker-образа (Trivy) ---
+  container-scan:
+    name: Container scan (Trivy)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Сборка образа
+        run: docker build -t music-library:ci .
+
+      - name: Trivy — уязвимости в образе
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: music-library:ci
+          format: sarif
+          output: trivy-results.sarif
+          severity: CRITICAL,HIGH,MEDIUM
+          # exit-code 0: отчёт для анализа в курсовой; смените на "1" для жёсткой блокировки релиза
+          exit-code: "0"
+
+      - name: Загрузка SARIF в GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: trivy-results.sarif
+        continue-on-error: true
+
+      - name: Артефакт отчёта Trivy
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-report
+          path: trivy-results.sarif
