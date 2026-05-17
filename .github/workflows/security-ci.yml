@@ -201,21 +201,28 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     environment: production
     steps:
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1.2.0
+      - name: Setup SSH agent
+        uses: webfactory/ssh-agent@v0.9.0
         with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ secrets.SSH_PORT != '' && secrets.SSH_PORT || '22' }}
-          script: |
-            set -e
-            cd ~/CI_CD
-            git fetch origin main
-            git reset --hard origin/main
-            if [ ! -f .env ]; then
-              echo "ERROR: создайте файл .env из .env.example"
-              exit 1
-            fi
-            docker compose up --build -d
-            docker compose ps
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Deploy via SSH
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PORT: ${{ secrets.SSH_PORT != '' && secrets.SSH_PORT || '22' }}
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -p "${SSH_PORT}" -H "${SSH_HOST}" >> ~/.ssh/known_hosts 2>/dev/null || true
+          ssh -p "${SSH_PORT}" -o StrictHostKeyChecking=accept-new "${SSH_USER}@${SSH_HOST}" << 'ENDSSH'
+          set -e
+          cd ~/CI_CD
+          git fetch origin main
+          git reset --hard origin/main
+          if [ ! -f .env ]; then
+            echo "ERROR: создайте файл .env из .env.example"
+            exit 1
+          fi
+          docker compose up --build -d
+          docker compose ps
+          ENDSSH
