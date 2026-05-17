@@ -168,5 +168,5 @@ python -c "from django.core.management.utils import get_random_secret_key; print
 
 - Сканируются публичные URL из `scripts/dast_urls.txt` (спайдер ZAP от главной).
 - Запуск через **Gunicorn** (как на сервере), не `runserver`.
-- `fail_action: true`, порог отчёта `-l MEDIUM`; ожидаемые предупреждения HTTP в CI — в `zap/rules.tsv`.
+- `fail_action: true`, порог отчёта `-l WARN` (в ZAP нет уровня MEDIUM); ожидаемые предупреждения HTTP в CI — в `zap/rules.tsv`.
 - Отчёты: артефакт `zap-report` в Actions.

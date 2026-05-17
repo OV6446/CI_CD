@@ -218,7 +218,7 @@ jobs:
         with:
           target: http://127.0.0.1:8000
           rules_file_name: zap/rules.tsv
-          cmd_options: -a -l MEDIUM
+          cmd_options: -a -l WARN -s
           fail_action: true
           allow_issue_writing: false
 
