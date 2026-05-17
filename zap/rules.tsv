@@ -1,4 +1,7 @@
-# Игнор для DAST в CI по HTTP (без TLS на runner)
+# HTTP в CI (без TLS на runner)
 10011	IGNORE	(Cookie Without Secure Flag)
 10015	IGNORE	(Incomplete or No Cache-control Header)
 10038	IGNORE	(Content Security Policy (CSP) Header Not Set)
+# CDN (Bootstrap, Plyr, Font Awesome) — внешние скрипты без SRI в шаблонах
+10017	IGNORE	(Cross-Domain JavaScript Source File Inclusion)
+90003	IGNORE	(Sub Resource Integrity Attribute Missing)
