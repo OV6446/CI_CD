@@ -162,3 +162,11 @@ python -c "from django.core.management.utils import get_random_secret_key; print
 | **Django check** | `DJANGO_DEBUG=true` в `env:` workflow |
 | **Trivy** | Старый `Dockerfile` без `apt-get upgrade` |
 | **Deploy** | Удалить `SSH_HOST` из Secrets |
+| **DAST (ZAP)** | `fail_action: false` в workflow или убрать `zap/rules.tsv` |
+
+### DAST (OWASP ZAP)
+
+- Сканируются публичные URL из `scripts/dast_urls.txt` (спайдер ZAP от главной).
+- Запуск через **Gunicorn** (как на сервере), не `runserver`.
+- `fail_action: true`, порог отчёта `-l MEDIUM`; ожидаемые предупреждения HTTP в CI — в `zap/rules.tsv`.
+- Отчёты: артефакт `zap-report` в Actions.

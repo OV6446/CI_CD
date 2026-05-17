@@ -180,7 +180,7 @@ jobs:
     name: DAST (OWASP ZAP baseline)
     runs-on: ubuntu-latest
     needs: tests
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
 
@@ -190,20 +190,46 @@ jobs:
           cache: pip
           cache-dependency-path: requirements.txt
 
-      - name: Запуск приложения для сканирования
+      - name: Запуск приложения (Gunicorn, как на сервере)
         run: |
           pip install -r requirements.txt
           python manage.py migrate --noinput
-          python manage.py runserver 127.0.0.1:8000 &
-          sleep 8
+          python manage.py collectstatic --noinput
+          gunicorn myproject.wsgi:application --bind 127.0.0.1:8000 --workers 2 --daemon
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:8000/ >/dev/null; then
+              echo "App is up"
+              break
+            fi
+            sleep 2
+          done
           curl -f http://127.0.0.1:8000/ -o /dev/null -s -L
+
+      - name: Проверка публичных URL перед ZAP
+        run: |
+          while read -r url; do
+            [ -z "$url" ] && continue
+            echo "GET $url"
+            curl -f "$url" -o /dev/null -s -L
+          done < scripts/dast_urls.txt
 
       - name: OWASP ZAP baseline scan
         uses: zaproxy/action-baseline@v0.14.0
         with:
           target: http://127.0.0.1:8000
-          fail_action: false
+          rules_file_name: zap/rules.tsv
+          cmd_options: -a -l MEDIUM
+          fail_action: true
           allow_issue_writing: false
+
+      - name: Отчёт ZAP (артефакт)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-report
+          path: |
+            report_html.html
+            report_md.md
 
   # Явные «ворота»: deploy запускается ТОЛЬКО после успеха всех проверок
   ci-gate:

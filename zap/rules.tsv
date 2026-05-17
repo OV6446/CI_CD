@@ -1,0 +1,4 @@
+# Игнор для DAST в CI по HTTP (без TLS на runner)
+10011	IGNORE	(Cookie Without Secure Flag)
+10015	IGNORE	(Incomplete or No Cache-control Header)
+10038	IGNORE	(Content Security Policy (CSP) Header Not Set)
