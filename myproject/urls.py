@@ -19,7 +19,8 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
-from django.contrib import messages
+from django.utils.http import url_has_allowed_host_and_scheme
+
 
 class CustomLoginView(auth_views.LoginView):
     template_name = 'main/login.html'
@@ -30,7 +31,11 @@ class CustomLoginView(auth_views.LoginView):
     
     def get_success_url(self):
         next_url = self.request.GET.get('next')
-        if next_url:
+        if next_url and url_has_allowed_host_and_scheme(
+            url=next_url,
+            allowed_hosts={self.request.get_host()},
+            require_https=self.request.is_secure(),
+        ):
             return next_url
         return super().get_success_url()
 

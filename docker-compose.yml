@@ -4,8 +4,12 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./db.sqlite3:/app/db.sqlite3
+      # Named volume: на чистом сервере bind-mount ./db.sqlite3 иногда создаёт каталог вместо файла
+      - db_data:/app/db.sqlite3
     env_file:
       - .env
     environment:
       DJANGO_SETTINGS_MODULE: myproject.settings
+
+volumes:
+  db_data:

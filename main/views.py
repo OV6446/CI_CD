@@ -11,6 +11,7 @@ from django.http import JsonResponse
 import random
 from django.contrib.auth import update_session_auth_hash
 from django.urls import reverse
+from .utils import append_scroll_fragment, is_safe_redirect_url
 
 # Главная страница - показывает плейлист "Моя музыка" и другие плейлисты пользователя
 @login_required
@@ -81,11 +82,8 @@ def create_playlist(request):
             next_url = request.POST.get('next')
             scroll_position = request.POST.get('scroll_position')
             
-            # Если есть next URL, перенаправляем туда с scroll position
-            if next_url:
-                if scroll_position:
-                    return redirect(f"{next_url}#scroll={scroll_position}")
-                return redirect(next_url)
+            if next_url and is_safe_redirect_url(next_url, request):
+                return redirect(append_scroll_fragment(next_url, scroll_position))
             
             # По умолчанию перенаправляем на manage_playlists, если нет next URL
             return redirect('manage_playlists')
@@ -138,12 +136,12 @@ def add_to_playlist(request, song_id=None):
             PlaylistSong.objects.create(playlist=playlist, song=song)
             messages.success(request, f'Песня добавлена в плейлист {playlist.name}!')
         
-        # Используем next_url если он есть, иначе используем HTTP_REFERER или home
-        if next_url:
-            if scroll_position:
-                return redirect(f"{next_url}#scroll={scroll_position}")
-            return redirect(next_url)
-        return redirect(request.META.get('HTTP_REFERER', 'home'))
+        if next_url and is_safe_redirect_url(next_url, request):
+            return redirect(append_scroll_fragment(next_url, scroll_position))
+        referer = request.META.get('HTTP_REFERER')
+        if referer and is_safe_redirect_url(referer, request):
+            return redirect(referer)
+        return redirect('home')
     
     # GET request - показываем форму выбора плейлиста
     deezer_id = request.GET.get('deezer_id')
@@ -410,7 +408,10 @@ def add_to_favorites(request, song_id=None):
         })
     
     messages.success(request, msg)
-    return redirect(request.META.get('HTTP_REFERER', 'home'))
+    referer = request.META.get('HTTP_REFERER')
+    if referer and is_safe_redirect_url(referer, request):
+        return redirect(referer)
+    return redirect('home')
 
 # Управление пользователями (только для администраторов)
 @login_required
