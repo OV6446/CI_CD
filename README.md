@@ -15,7 +15,7 @@
 ## Технологии
 
 - Python 3.13
-- Django 4.2+
+- Django 5.2+
 - SQLite
 - Deezer API
 
@@ -173,3 +173,4 @@ python -c "from django.core.management.utils import get_random_secret_key; print
 
 
 Тест
+уфкшпщшкуопщзшлпз
