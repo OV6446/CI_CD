@@ -4,8 +4,8 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      # Named volume: на чистом сервере bind-mount ./db.sqlite3 иногда создаёт каталог вместо файла
-      - db_data:/app/db.sqlite3
+      # Том на каталог: volume нельзя надёжно монтировать в файл db.sqlite3
+      - db_data:/app/data
     env_file:
       - .env
     environment:

@@ -286,5 +286,13 @@ jobs:
               echo "ERROR: создайте файл .env из .env.example"
               exit 1
             fi
+            mkdir -p data
+            if [ -f db.sqlite3 ] && [ ! -f data/db.sqlite3 ]; then
+              cp -a db.sqlite3 data/db.sqlite3
+            fi
+            if [ -d db.sqlite3 ]; then
+              rm -rf db.sqlite3
+            fi
+            docker compose down 2>/dev/null || true
             docker compose up --build -d
             docker compose ps

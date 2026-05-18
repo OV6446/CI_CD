@@ -171,6 +171,15 @@ python -c "from django.core.management.utils import get_random_secret_key; print
 - `fail_action: true`, порог отчёта `-l WARN` (в ZAP нет уровня MEDIUM); ожидаемые предупреждения HTTP в CI — в `zap/rules.tsv`.
 - Отчёты: артефакт `zap-report` в Actions.
 
+### База данных в Docker
 
-Тест
-уфкшпщшкуопщзшлпз
+SQLite хранится в `data/db.sqlite3`, том Docker монтируется в каталог `/app/data` (не в файл).
+
+Если deploy падает с `not a directory` при монтировании volume, на сервере один раз:
+
+```bash
+cd ~/CI_CD
+docker compose down
+docker volume rm ci_cd_db_data
+docker compose up --build -d
+```
