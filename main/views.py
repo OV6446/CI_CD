@@ -249,7 +249,7 @@ def search(request):
         # Поиск в Deezer API
         search_url = f'https://api.deezer.com/search?q={query}'
         try:
-            response = requests.get(search_url, timeout=10)
+            response = requests.get(search_url) #, timeout=10)
             response.raise_for_status()
             data = response.json()
             for item in data.get('data', []):
