@@ -5,7 +5,7 @@
 <div class="container-fluid mt-4">
     <div class="row">
         <!-- Фильтры -->
-        <div class="col-md-3">
+        <div class="col-12 col-lg-3 mb-3 mb-lg-0">
             <div class="card artist-filter-card mb-4">
                 <div class="card-header">
                     <h5 class="mb-0">Фильтры</h5>
@@ -47,13 +47,13 @@
         </div>
         
         <!-- Избранные песни -->
-        <div class="col-md-9">
+        <div class="col-12 col-lg-9">
             <h1 class="mb-4">Моя музыка</h1>
             
             {% if songs %}
                 <div class="row">
                     {% for song in songs %}
-                    <div class="col-md-4 mb-4">
+                    <div class="col-6 col-md-4 col-xl-3 mb-3 mb-md-4">
                         <div class="card position-relative">
                             <div class="cover-wrapper position-relative play-cover-area" style="cursor:pointer;">
                                 <img src="{{ song.cover_url }}" class="card-img-top" alt="Обложка">
@@ -215,7 +215,7 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    form.closest('.col-md-4').remove();
+                    form.closest('[class*="col-"]').remove();
                 } else {
                     alert(data.message || 'Ошибка удаления');
                 }

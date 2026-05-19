@@ -75,7 +75,7 @@
     
     <!-- Поиск и фильтры -->
     <div class="row mb-4">
-        <div class="col-md-8">
+        <div class="col-12 col-lg-8 mb-3 mb-lg-0">
             <!-- Поиск -->
             <div class="search-container">
                 <form method="get" action="{% url 'search' %}" class="search-form">
@@ -93,7 +93,7 @@
                 </form>
             </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-12 col-lg-4">
             <!-- Фильтр по жанрам -->
             <div class="card genre-filter-card">
                 <div class="card-body">
@@ -148,7 +148,7 @@
     {% if deezer_results %}
         <div class="row">
             {% for song in deezer_results %}
-            <div class="col-md-4 mb-4">
+            <div class="col-6 col-md-4 col-xl-3 mb-3 mb-md-4">
                 <div class="card position-relative">
                     <div class="cover-wrapper position-relative" style="cursor:pointer;">
                         <img src="{{ song.cover_url }}" class="card-img-top" alt="Обложка">
