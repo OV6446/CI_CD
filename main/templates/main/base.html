@@ -4,7 +4,7 @@
 <html lang="ru" data-theme="light">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Музыкальная библиотека{% endblock %}</title>
     <script>
         (function() {
@@ -361,11 +361,7 @@
         }
 
         .container:not(.navbar .container) {
-            padding-bottom: 1.5rem;
-        }
-
-        body.has-global-player {
-            padding-bottom: calc(var(--player-height, 0px) + env(safe-area-inset-bottom, 0px));
+            padding-bottom: 80px;
         }
 
         audio {
@@ -675,118 +671,35 @@
         }
 
         /* Адаптивные стили */
-        @media (max-width: 991px) {
-            .navbar {
-                padding: 0.65rem 1rem;
-                margin-bottom: 1.25rem;
-            }
-
-            .navbar-brand {
-                font-size: 1.15rem;
-                max-width: 55vw;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-            }
-
-            .navbar-nav:last-of-type {
-                margin-left: 0;
+        @media (max-width: 768px) {
+            .navbar-nav {
+                flex-wrap: wrap;
+                justify-content: center;
             }
 
             .navbar-nav .nav-link {
-                padding: 0.55rem 0.85rem;
-                font-size: 0.95rem;
-                min-height: 44px;
-                display: flex;
-                align-items: center;
-            }
-
-            .navbar-nav .nav-link i {
-                margin-right: 0.55rem;
-            }
-
-            .theme-switch {
-                margin-left: 0;
-            }
-
-            h1 {
-                font-size: 1.5rem;
-                margin-bottom: 1rem;
-            }
-
-            .card:hover {
-                transform: none;
-            }
-
-            .card-img-top,
-            .cover-wrapper {
-                height: 160px;
-            }
-
-            .play-pause-overlay-btn {
-                width: 52px !important;
-                height: 52px !important;
-                min-width: 44px;
-                min-height: 44px;
+                padding: 0.3rem 0.6rem;
+                font-size: 0.85rem;
             }
 
             .action-buttons {
-                justify-content: stretch;
+                justify-content: center;
             }
 
             .action-btn {
-                flex: 1 1 auto;
-                justify-content: center;
-                min-height: 44px;
+                padding: 0.3rem 0.6rem;
+                font-size: 0.8rem;
             }
 
             .card-actions {
-                justify-content: stretch;
-                gap: 0.45rem;
+                justify-content: center;
             }
 
             .card-actions .btn {
                 flex: 1 1 auto;
                 min-width: 0;
-                min-height: 44px;
-                padding: 0.5rem 0.65rem;
-                font-size: 0.82rem;
-            }
-
-            .btn-playlist {
-                height: auto;
-                min-height: 44px;
-            }
-
-            .scroll-to-top {
-                bottom: calc(var(--player-height, 24px) + 16px + env(safe-area-inset-bottom, 0px));
-                right: 16px;
-                width: 44px;
-                height: 44px;
-            }
-
-            .table-responsive {
-                font-size: 0.9rem;
-            }
-        }
-
-        @media (max-width: 576px) {
-            .navbar-brand span.brand-text-full {
-                display: none;
-            }
-
-            .container {
-                padding-left: 0.85rem;
-                padding-right: 0.85rem;
-            }
-
-            .card-body {
-                padding: 0.85rem;
-            }
-
-            .card-img-top,
-            .cover-wrapper {
-                height: 140px;
+                padding: 0.4rem 0.8rem;
+                font-size: 0.8rem;
             }
         }
 
@@ -854,248 +767,52 @@
         }
 
         /* Глобальный аудиоплеер */
-        :root {
-            --player-height: 0px;
-        }
-
-        body.has-global-player {
-            --player-height: 168px;
-        }
-
-        @media (min-width: 992px) {
-            body.has-global-player {
-                --player-height: 108px;
-            }
-        }
-
-        #global-player-audio {
-            display: none;
-        }
-
         #global-player-bar {
             position: fixed;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            left: 50%;
+            bottom: 24px;
+            transform: translateX(-50%);
             z-index: 2000;
             background: var(--gradient-secondary);
-            box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.18);
-            padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
-            display: none;
-            flex-direction: column;
-            gap: 0.65rem;
-            width: 100%;
-            max-width: 100%;
-            border-radius: 18px 18px 0 0;
-            border: 1px solid var(--border-color);
-            border-bottom: none;
-            backdrop-filter: blur(12px);
-            transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.32s ease;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        #global-player-bar.is-visible {
+            box-shadow: 0 -2px 16px rgba(0,0,0,0.15), 0 2px 16px rgba(0,0,0,0.10);
+            padding: 1rem 1.8rem;
             display: flex;
+            align-items: center;
+            gap: 1.8rem;
+            min-height: 80px;
+            max-width: 1200px;
+            width: 96vw;
+            border-radius: 24px;
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         #global-player-bar.collapsed {
-            transform: translateY(110%);
+            transform: translateX(-50%) translateY(calc(100% + 24px));
             opacity: 0;
             pointer-events: none;
-        }
-
-        .global-player-top {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            min-width: 0;
-        }
-
-        #global-player-cover {
-            width: 52px;
-            height: 52px;
-            flex-shrink: 0;
-            border-radius: 10px;
-            object-fit: cover;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-            background: var(--border-color);
-        }
-
-        #global-player-cover[hidden] {
-            display: none !important;
-        }
-
-        #global-player-info {
-            flex: 1;
-            min-width: 0;
-        }
-
-        #global-player-title {
-            font-weight: 700;
-            font-size: 0.95rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            color: var(--text-color);
-            margin-bottom: 0.15rem;
-            line-height: 1.25;
-        }
-
-        #global-player-artist {
-            font-size: 0.82rem;
-            color: var(--text-secondary);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            font-weight: 500;
-            line-height: 1.25;
-        }
-
-        .global-player-progress-wrap {
-            width: 100%;
-        }
-
-        #global-player-seek {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 100%;
-            height: 6px;
-            border-radius: 999px;
-            background: var(--border-color);
-            outline: none;
-            cursor: pointer;
-            margin: 0;
-        }
-
-        #global-player-seek::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background: var(--primary-color);
-            border: 2px solid var(--card-bg);
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
-        }
-
-        #global-player-seek::-moz-range-thumb {
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background: var(--primary-color);
-            border: 2px solid var(--card-bg);
-        }
-
-        .global-player-times {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 0.25rem;
-            font-size: 0.72rem;
-            color: var(--text-secondary);
-            font-variant-numeric: tabular-nums;
-        }
-
-        .global-player-controls {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.75rem;
-        }
-
-        .player-ctrl-btn {
-            width: 44px;
-            height: 44px;
-            min-width: 44px;
-            min-height: 44px;
-            padding: 0;
-            border-radius: 50%;
-            border: 1px solid var(--border-color);
-            background: var(--card-bg);
-            color: var(--text-color);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            transition: background 0.2s ease, transform 0.15s ease;
-            touch-action: manipulation;
-        }
-
-        .player-ctrl-btn:active {
-            transform: scale(0.94);
-        }
-
-        .player-ctrl-btn:hover {
-            background: var(--gradient-primary);
-            color: #fff;
-            border-color: var(--primary-color);
-        }
-
-        #global-player-play {
-            width: 56px;
-            height: 56px;
-            min-width: 56px;
-            min-height: 56px;
-            font-size: 1.25rem;
-            background: var(--gradient-primary);
-            color: #fff;
-            border: none;
-            box-shadow: 0 4px 14px rgba(29, 185, 84, 0.35);
-        }
-
-        #global-player-play:hover {
-            color: #fff;
-        }
-
-        #global-player-close {
-            margin-left: auto;
-            flex-shrink: 0;
-        }
-
-        .player-volume-wrap {
-            display: none;
-            align-items: center;
-            gap: 0.35rem;
-            margin-left: 0.25rem;
-        }
-
-        #global-player-volume {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 72px;
-            height: 4px;
-            border-radius: 999px;
-            background: var(--border-color);
-            cursor: pointer;
-        }
-
-        #global-player-volume::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: var(--primary-color);
         }
 
         #global-player-expand {
             position: fixed;
             left: 50%;
-            bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+            bottom: 24px;
             transform: translateX(-50%);
             z-index: 2001;
             background: var(--gradient-secondary);
             border: 1px solid var(--border-color);
-            border-radius: 999px;
-            min-width: 48px;
-            height: 48px;
-            padding: 0 14px;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
             display: none;
             align-items: center;
             justify-content: center;
-            gap: 0.4rem;
             cursor: pointer;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
             color: var(--text-color);
             opacity: 0;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            touch-action: manipulation;
         }
 
         #global-player-expand:hover {
@@ -1104,75 +821,182 @@
         }
 
         #global-player-expand.visible {
-            display: inline-flex;
+            display: flex;
             opacity: 1;
         }
 
-        #global-player-expand-label {
-            font-size: 0.8rem;
-            font-weight: 600;
-            max-width: 120px;
+        #global-player-cover {
+            width: 64px !important;
+            height: 64px !important;
+            border-radius: 16px !important;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.25) !important;
+            transition: all 0.3s ease;
+            object-fit: cover;
+        }
+
+        #global-player-cover:hover {
+            transform: scale(1.05) rotate(2deg);
+        }
+
+        #global-player-info {
+            flex: 1;
+            min-width: 0;
+            padding-right: 1rem;
+        }
+
+        #global-player-title {
+            font-weight: 700;
+            font-size: 1.2rem;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            color: var(--text-color);
+            margin-bottom: 0.3rem;
+            letter-spacing: -0.5px;
         }
 
-        @media (min-width: 992px) {
+        #global-player-artist {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-weight: 500;
+        }
+
+        #global-player-audio {
+            width: 600px !important;
+            max-width: 50vw !important;
+            min-width: 300px !important;
+            height: 56px !important;
+            border-radius: 16px !important;
+            background: var(--gradient-secondary) !important;
+            border: 1px solid var(--border-color) !important;
+            padding: 0 1rem !important;
+        }
+
+        /* Стилизация аудио элементов */
+        #global-player-audio::-webkit-media-controls-panel {
+            background: var(--gradient-secondary) !important;
+            border-radius: 16px !important;
+            padding: 0 1rem !important;
+        }
+
+        #global-player-audio::-webkit-media-controls-current-time-display,
+        #global-player-audio::-webkit-media-controls-time-remaining-display {
+            color: var(--text-color) !important;
+            font-weight: 500 !important;
+            font-size: 0.9rem !important;
+            min-width: 45px !important;
+        }
+
+        #global-player-audio::-webkit-media-controls-timeline {
+            background: var(--border-color) !important;
+            border-radius: 25px !important;
+            height: 6px !important;
+            margin: 0 15px !important;
+            flex-grow: 1 !important;
+        }
+
+        #global-player-audio::-webkit-media-controls-timeline::-webkit-slider-thumb {
+            background: var(--primary-color) !important;
+            border-radius: 50% !important;
+            width: 14px !important;
+            height: 14px !important;
+            margin-top: -4px !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
+        }
+
+        #global-player-audio::-webkit-media-controls-volume-slider {
+            background: var(--border-color) !important;
+            border-radius: 25px !important;
+            height: 6px !important;
+            margin: 0 10px !important;
+            width: 80px !important;
+        }
+
+        #global-player-audio::-webkit-media-controls-volume-slider::-webkit-slider-thumb {
+            background: var(--primary-color) !important;
+            border-radius: 50% !important;
+            width: 14px !important;
+            height: 14px !important;
+            margin-top: -4px !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
+        }
+
+        #global-player-close {
+            width: 40px !important;
+            height: 40px !important;
+            padding: 0 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            border-radius: 50% !important;
+            background: var(--gradient-secondary) !important;
+            border: 1px solid var(--border-color) !important;
+            transition: all 0.3s ease !important;
+            font-size: 1.1rem !important;
+        }
+
+        #global-player-close:hover {
+            background: var(--gradient-primary) !important;
+            border-color: var(--primary-color) !important;
+        }
+
+        @media (max-width: 992px) {
             #global-player-bar {
-                left: 50%;
-                right: auto;
-                bottom: 20px;
-                transform: translateX(-50%);
-                width: min(1100px, calc(100% - 2rem));
-                max-width: 1100px;
-                border-radius: 20px;
-                border-bottom: 1px solid var(--border-color);
-                padding: 0.85rem 1.25rem;
-                flex-direction: row;
-                flex-wrap: wrap;
-                align-items: center;
-                gap: 0.85rem 1rem;
+                padding: 0.8rem 1.5rem;
+                gap: 1.5rem;
+                min-height: 72px;
             }
-
-            #global-player-bar.collapsed {
-                transform: translateX(-50%) translateY(calc(100% + 28px));
-            }
-
-            .global-player-top {
-                flex: 0 1 220px;
-            }
-
             #global-player-cover {
-                width: 56px;
-                height: 56px;
+                width: 56px !important;
+                height: 56px !important;
             }
+            #global-player-audio {
+                width: 400px !important;
+            }
+        }
 
+        @media (max-width: 768px) {
+            #global-player-bar {
+                padding: 0.7rem 1.2rem;
+                gap: 1.2rem;
+                min-height: 68px;
+            }
+            #global-player-cover {
+                width: 48px !important;
+                height: 48px !important;
+            }
+            #global-player-audio {
+                width: 300px !important;
+            }
             #global-player-title {
-                font-size: 1.05rem;
+                font-size: 1.1rem;
             }
-
-            .global-player-progress-wrap {
-                flex: 1 1 280px;
-                min-width: 200px;
-                order: 2;
+            #global-player-artist {
+                font-size: 0.9rem;
             }
+        }
 
-            .global-player-controls {
-                flex: 0 0 auto;
-                order: 3;
+        @media (max-width: 480px) {
+            #global-player-bar {
+                padding: 0.6rem 1rem;
+                gap: 1rem;
+                min-height: 64px;
             }
-
-            #global-player-close {
-                order: 4;
-                margin-left: 0;
+            #global-player-cover {
+                width: 40px !important;
+                height: 40px !important;
             }
-
-            .player-volume-wrap {
-                display: inline-flex;
+            #global-player-audio {
+                width: 200px !important;
             }
-
-            #global-player-expand {
-                bottom: 24px;
+            #global-player-title {
+                font-size: 0.95rem;
+            }
+            #global-player-artist {
+                font-size: 0.85rem;
             }
         }
 
@@ -1356,33 +1180,9 @@
             padding: 0.5rem 1rem;
             white-space: normal;
         }
-
-        .navbar-toggler {
-            border-color: var(--border-color);
-            padding: 0.35rem 0.55rem;
-        }
-
-        .navbar-toggler:focus {
-            box-shadow: 0 0 0 0.2rem rgba(29, 185, 84, 0.25);
-        }
-
-        @media (max-width: 991px) {
-            .search-form .input-group {
-                flex-wrap: nowrap;
-            }
-
-            .search-form .form-control {
-                min-width: 0;
-            }
-
-            .search-btn {
-                min-width: 48px;
-                min-height: 44px;
-            }
-        }
     </style>
 </head>
-<body class="{% if user.is_authenticated and request.resolver_match.url_name not in 'login,register,logout' %}has-global-player{% endif %}">
+<body>
     <!-- Загрузочный экран -->
     <div class="loading-overlay">
         <div class="loading-spinner"></div>
@@ -1391,9 +1191,7 @@
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
             <a class="navbar-brand" href="{% url 'home' %}">
-                <i class="fas fa-music"></i>
-                <span class="brand-text-full"> Музыкальная библиотека</span>
-                <span class="d-inline d-sm-none"> Библиотека</span>
+                <i class="fas fa-music"></i> Музыкальная библиотека
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -1499,47 +1297,24 @@
 
     <!-- Глобальный аудиоплеер -->
     {% if user.is_authenticated and request.resolver_match.url_name not in 'login,register,logout' %}
-    <div id="global-player-bar" role="region" aria-label="Плеер">
-        <div class="global-player-top">
-            <img id="global-player-cover" src="" alt="" hidden>
-            <div id="global-player-info">
-                <div id="global-player-title">Выберите трек</div>
-                <div id="global-player-artist"></div>
-            </div>
-            <button type="button" id="global-player-close" class="player-ctrl-btn" title="Свернуть плеер" aria-label="Свернуть плеер">
-                <i class="fas fa-chevron-down"></i>
-            </button>
+    <div id="global-player-bar">
+        <img id="global-player-cover" src="" alt="Обложка" style="display:none;">
+        <div id="global-player-info">
+            <div id="global-player-title">Выберите трек для прослушивания</div>
+            <div id="global-player-artist"></div>
         </div>
-        <div class="global-player-progress-wrap">
-            <input type="range" id="global-player-seek" min="0" max="100" value="0" step="0.1" aria-label="Позиция воспроизведения">
-            <div class="global-player-times">
-                <span id="global-player-current">0:00</span>
-                <span id="global-player-duration">0:00</span>
-            </div>
-        </div>
-        <div class="global-player-controls">
-            <button type="button" id="global-player-prev" class="player-ctrl-btn" title="Предыдущий трек" aria-label="Предыдущий трек">
+        <div class="d-flex align-items-center gap-2">
+            <button id="global-player-prev" class="btn btn-outline-secondary btn-sm" title="Предыдущий трек">
                 <i class="fas fa-step-backward"></i>
             </button>
-            <button type="button" id="global-player-play" class="player-ctrl-btn" title="Воспроизведение" aria-label="Воспроизведение">
-                <i class="fas fa-play"></i>
-            </button>
-            <button type="button" id="global-player-next" class="player-ctrl-btn" title="Следующий трек" aria-label="Следующий трек">
+            <audio id="global-player-audio" controls></audio>
+            <button id="global-player-next" class="btn btn-outline-secondary btn-sm" title="Следующий трек">
                 <i class="fas fa-step-forward"></i>
             </button>
-            <button type="button" id="global-player-mute" class="player-ctrl-btn" title="Звук" aria-label="Звук">
-                <i class="fas fa-volume-up"></i>
-            </button>
-            <div class="player-volume-wrap">
-                <input type="range" id="global-player-volume" min="0" max="1" step="0.05" value="1" aria-label="Громкость">
-            </div>
         </div>
-        <audio id="global-player-audio" preload="metadata" playsinline></audio>
+        <button id="global-player-close" class="btn btn-outline-secondary btn-sm" title="Свернуть плеер"><i class="fas fa-chevron-down"></i></button>
     </div>
-    <button type="button" id="global-player-expand" title="Развернуть плеер" aria-label="Развернуть плеер">
-        <i class="fas fa-music"></i>
-        <span id="global-player-expand-label"></span>
-    </button>
+    <button id="global-player-expand" title="Развернуть плеер"><i class="fas fa-chevron-up"></i></button>
     {% endif %}
 
     <button class="scroll-to-top" id="scrollToTop">
@@ -1562,15 +1337,14 @@
         // Проверяем сохраненную тему
         const savedTheme = localStorage.getItem('theme') || 'light';
         document.documentElement.setAttribute('data-theme', savedTheme);
-        const themeToggle = document.getElementById('theme-toggle');
-        if (themeToggle) {
-            themeToggle.checked = savedTheme === 'dark';
-            themeToggle.addEventListener('change', function() {
-                const theme = this.checked ? 'dark' : 'light';
-                document.documentElement.setAttribute('data-theme', theme);
-                localStorage.setItem('theme', theme);
-            });
-        }
+        document.getElementById('theme-toggle').checked = savedTheme === 'dark';
+
+        // Обработчик переключения темы
+        document.getElementById('theme-toggle').addEventListener('change', function() {
+            const theme = this.checked ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+        });
 
         // Останавливать другие аудио при воспроизведении одного
         document.addEventListener('play', function(e){
@@ -1584,10 +1358,10 @@
             }
         }, true);
 
-        // Инициализация Plyr (кроме скрытого глобального плеера)
+        // Инициализация Plyr для всех аудио
         document.addEventListener('DOMContentLoaded', function() {
             window.plyrPlayers = [];
-            document.querySelectorAll('audio:not(#global-player-audio)').forEach(function(el) {
+            document.querySelectorAll('audio').forEach(function(el) {
                 window.plyrPlayers.push(new Plyr(el, {
                     controls: ['play', 'progress', 'current-time', 'mute', 'volume'],
                     hideControls: false,
@@ -1605,96 +1379,8 @@
         const globalPlayerCover = document.getElementById('global-player-cover');
         const globalPlayerClose = document.getElementById('global-player-close');
         const globalPlayerExpand = document.getElementById('global-player-expand');
-        const globalPlayerExpandLabel = document.getElementById('global-player-expand-label');
         const globalPlayerPrev = document.getElementById('global-player-prev');
         const globalPlayerNext = document.getElementById('global-player-next');
-        const globalPlayerPlay = document.getElementById('global-player-play');
-        const globalPlayerSeek = document.getElementById('global-player-seek');
-        const globalPlayerCurrent = document.getElementById('global-player-current');
-        const globalPlayerDuration = document.getElementById('global-player-duration');
-        const globalPlayerMute = document.getElementById('global-player-mute');
-        const globalPlayerVolume = document.getElementById('global-player-volume');
-        let isSeeking = false;
-        let isNavigatingAway = false;
-
-        function formatTime(seconds) {
-            if (isNaN(seconds)) return '0:00';
-            const minutes = Math.floor(seconds / 60);
-            seconds = Math.floor(seconds % 60);
-            return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
-        }
-
-        function showGlobalPlayerBar() {
-            if (!globalPlayerBar) return;
-            globalPlayerBar.classList.add('is-visible');
-            globalPlayerBar.style.display = 'flex';
-            globalPlayerBar.classList.remove('collapsed');
-            if (globalPlayerExpand) {
-                globalPlayerExpand.classList.remove('visible');
-            }
-        }
-
-        function setGlobalCover(cover) {
-            if (!globalPlayerCover) return;
-            if (cover) {
-                globalPlayerCover.src = cover;
-                globalPlayerCover.hidden = false;
-            } else {
-                globalPlayerCover.removeAttribute('src');
-                globalPlayerCover.hidden = true;
-            }
-        }
-
-        function updateGlobalPlayButton() {
-            if (!globalPlayerPlay) return;
-            const icon = globalPlayerPlay.querySelector('i');
-            if (!icon) return;
-            if (window.globalPlayerState && window.globalPlayerState.isPlaying) {
-                icon.classList.remove('fa-play');
-                icon.classList.add('fa-pause');
-                globalPlayerPlay.setAttribute('aria-label', 'Пауза');
-            } else {
-                icon.classList.remove('fa-pause');
-                icon.classList.add('fa-play');
-                globalPlayerPlay.setAttribute('aria-label', 'Воспроизведение');
-            }
-        }
-
-        function updateMuteButton() {
-            if (!globalPlayerMute || !globalPlayerAudio) return;
-            const icon = globalPlayerMute.querySelector('i');
-            if (!icon) return;
-            icon.classList.remove('fa-volume-up', 'fa-volume-mute', 'fa-volume-down');
-            if (globalPlayerAudio.muted || globalPlayerAudio.volume === 0) {
-                icon.classList.add('fa-volume-mute');
-            } else if (globalPlayerAudio.volume < 0.5) {
-                icon.classList.add('fa-volume-down');
-            } else {
-                icon.classList.add('fa-volume-up');
-            }
-        }
-
-        function syncSeekFromAudio() {
-            if (!globalPlayerSeek || !globalPlayerAudio || isSeeking) return;
-            const duration = globalPlayerAudio.duration;
-            if (!duration || !isFinite(duration)) {
-                globalPlayerSeek.value = 0;
-                return;
-            }
-            globalPlayerSeek.value = (globalPlayerAudio.currentTime / duration) * 100;
-            if (globalPlayerCurrent) {
-                globalPlayerCurrent.textContent = formatTime(globalPlayerAudio.currentTime);
-            }
-            if (globalPlayerDuration) {
-                globalPlayerDuration.textContent = formatTime(duration);
-            }
-        }
-
-        function updateExpandLabel() {
-            if (!globalPlayerExpandLabel || !globalPlayerTitle) return;
-            const title = globalPlayerTitle.textContent.trim();
-            globalPlayerExpandLabel.textContent = title && title !== 'Выберите трек' ? title : 'Плеер';
-        }
 
         // Функция для получения списка доступных треков
         function getAvailableTracks() {
@@ -1737,204 +1423,113 @@
         }
 
         // Свернуть/развернуть плеер
-        if (globalPlayerClose && globalPlayerExpand && globalPlayerBar) {
-            globalPlayerClose.onclick = function() {
+        if(globalPlayerClose && globalPlayerExpand) {
+            globalPlayerClose.onclick = () => {
                 globalPlayerBar.classList.add('collapsed');
-                setTimeout(function() {
+                setTimeout(() => {
                     globalPlayerExpand.classList.add('visible');
-                    updateExpandLabel();
                 }, 300);
             };
 
-            globalPlayerExpand.onclick = function() {
+            globalPlayerExpand.onclick = () => {
                 globalPlayerExpand.classList.remove('visible');
                 globalPlayerBar.classList.remove('collapsed');
             };
         }
 
         // Глобальное состояние плеера
-        if (!globalPlayerAudio) {
-            window.globalPlayerState = window.globalPlayerState || {
-                currentTrack: null,
-                isPlaying: false,
-                updatePlayPauseIcons: function() {},
-                saveState: function() {},
-                loadState: fnction() {}
-            };
-            window.playInGlobalPlayer = window.playInGlobalPlayer || function() {};
-        }
-
-        if (globalPlayerAudio) window.globalPlayerState = {
+        window.globalPlayerState = {
             currentTrack: null,
             isPlaying: false,
             currentTime: 0,
             updatePlayPauseIcons: function() {
                 document.querySelectorAll('.play-pause-overlay-btn').forEach(function(btn) {
                     const btnUrl = btn.dataset.url;
-                    const icon = btn.querySelector('i');
-                    if (!icon) return;
                     if (window.globalPlayerState.currentTrack === btnUrl && window.globalPlayerState.isPlaying) {
-                        icon.classList.remove('fa-play');
-                        icon.classList.add('fa-pause');
+                        btn.querySelector('i').classList.remove('fa-play');
+                        btn.querySelector('i').classList.add('fa-pause');
                     } else {
-                        icon.classList.remove('fa-pause');
-                        icon.classList.add('fa-play');
+                        btn.querySelector('i').classList.remove('fa-pause');
+                        btn.querySelector('i').classList.add('fa-play');
                     }
                 });
-                updateGlobalPlayButton();
             },
             saveState: function() {
-                if (!globalPlayerAudio) return;
                 const state = {
                     currentTrack: this.currentTrack,
                     isPlaying: this.isPlaying,
-                    currentTime: globalPlayerAudio.currentTime || 0,
-                    title: globalPlayerTitle ? globalPlayerTitle.textContent : '',
-                    artist: globalPlayerArtist ? globalPlayerArtist.textContent : '',
-                    cover: globalPlayerCover && globalPlayerCover.src ? globalPlayerCover.src : '',
+                    currentTime: globalPlayerAudio.currentTime,
+                    title: globalPlayerTitle.textContent,
+                    artist: globalPlayerArtist.textContent,
+                    cover: globalPlayerCover.src,
                     volume: globalPlayerAudio.volume,
-                    muted: globalPlayerAudio.muted,
-                    savedAt: Date.now()
+                    muted: globalPlayerAudio.muted
                 };
-                try {
-                    localStorage.setItem('globalPlayerState', JSON.stringify(state));
-                } catch (e) { /* quota / private mode */ }
+                localStorage.setItem('globalPlayerState', JSON.stringify(state));
             },
             loadState: function() {
-                if (!globalPlayerAudio) return;
-                let state;
-                try {
-                    const savedState = localStorage.getItem('globalPlayerState');
-                    if (!savedState) return;
-                    state = JSON.parse(savedState);
-                } catch (e) {
-                    return;
-                }
-                if (!state.currentTrack) return;
-
-                const shouldPlay = !!state.isPlaying;
-                const self = this;
-
-                showGlobalPlayerBar();
-                if (globalPlayerTitle) globalPlayerTitle.textContent = state.title || '';
-                if (globalPlayerArtist) globalPlayerArtist.textContent = state.artist || '';
-                setGlobalCover(state.cover || '');
-                this.currentTrack = state.currentTrack;
-                this.currentTime = state.currentTime || 0;
-                this.isPlaying = shouldPlay;
-
-                if (typeof state.volume !== 'undefined') {
-                    globalPlayerAudio.volume = state.volume;
-                    if (globalPlayerVolume) globalPlayerVolume.value = state.volume;
-                }
-                if (typeof state.muted !== 'undefined') {
-                    globalPlayerAudio.muted = state.muted;
-                }
-
-                function applySeekAndMaybePlay() {
-                    const duration = globalPlayerAudio.duration;
-                    const seekTo = state.currentTime || 0;
-                    if (duration && isFinite(duration)) {
-                        globalPlayerAudio.currentTime = Math.min(seekTo, Math.max(0, duration - 0.05));
-                    } else if (seekTo > 0) {
-                        globalPlayerAudio.currentTime = seekTo;
-                    }
-                    syncSeekFromAudio();
-                    updateExpandLabel();
-                    updateMuteButton();
-                    self.updatePlayPauseIcons();
-                    if (shouldPlay) {
-                        globalPlayerAudio.play().catch(function() {});
-                    }
-                }
-
-                globalPlayerAudio.src = state.currentTrack;
-                globalPlayerAudio.load();
-
-                if (globalPlayerAudio.readyState >= 1) {
-                    applySeekAndMaybePlay();
-                } else {
-                    globalPlayerAudio.addEventListener('loadedmetadata', applySeekAndMaybePlay, { once: true });
-                    globalPlayerAudio.addEventListener('canplay', function onCanPlay() {
-                        if (shouldPlay && globalPlayerAudio.paused) {
-                            globalPlayerAudio.play().catch(function() {});
+                const savedState = localStorage.getItem('globalPlayerState');
+                if (savedState) {
+                    const state = JSON.parse(savedState);
+                    if (state.currentTrack) {
+                        globalPlayerBar.style.display = 'flex';
+                        globalPlayerAudio.src = state.currentTrack;
+                        globalPlayerTitle.textContent = state.title;
+                        globalPlayerArtist.textContent = state.artist;
+                        if (state.cover) {
+                            globalPlayerCover.src = state.cover;
+                            globalPlayerCover.style.display = '';
                         }
-                    }, { once: true });
+                        this.currentTrack = state.currentTrack;
+                        this.currentTime = state.currentTime;
+
+                        // Восстанавливаем громкость и состояние mute
+                        if (typeof state.volume !== 'undefined') {
+                            globalPlayerAudio.volume = state.volume;
+                        }
+                        if (typeof state.muted !== 'undefined') {
+                            globalPlayerAudio.muted = state.muted;
+                        }
+
+                        // Восстанавливаем позицию и состояние воспроизведения
+                        globalPlayerAudio.currentTime = state.currentTime;
+                        if (state.isPlaying) {
+                            globalPlayerAudio.play();
+                        }
+                    }
                 }
             }
         };
 
         // Функция для запуска трека в глобальном плеере
         window.playInGlobalPlayer = function({title, artist, cover, url}) {
-            if (!globalPlayerAudio) return;
             if (window.globalPlayerState.currentTrack === url) {
+                // Если это текущий трек, переключаем play/pause
                 if (window.globalPlayerState.isPlaying) {
                     globalPlayerAudio.pause();
+                    window.globalPlayerState.isPlaying = false;
                 } else {
-                    globalPlayerAudio.play().catch(function() {});
+                    globalPlayerAudio.play();
+                    window.globalPlayerState.isPlaying = true;
                 }
             } else {
-                showGlobalPlayerBar();
+                // Если это новый трек, начинаем его воспроизведение
+                globalPlayerBar.style.display = 'flex';
                 globalPlayerAudio.src = url;
-                if (globalPlayerTitle) globalPlayerTitle.textContent = title || '';
-                if (globalPlayerArtist) globalPlayerArtist.textContent = artist || '';
-                setGlobalCover(cover || '');
+                globalPlayerTitle.textContent = title || '';
+                globalPlayerArtist.textContent = artist || '';
+                if (cover) {
+                    globalPlayerCover.src = cover;
+                    globalPlayerCover.style.display = '';
+                } else {
+                    globalPlayerCover.style.display = 'none';
+                }
                 window.globalPlayerState.currentTrack = url;
-                globalPlayerAudio.play().catch(function() {});
+                globalPlayerAudio.play();
             }
-            updateExpandLabel();
             window.globalPlayerState.updatePlayPauseIcons();
             window.globalPlayerState.saveState();
         };
-
-        if (globalPlayerPlay) {
-            globalPlayerPlay.addEventListener('click', function() {
-                if (!globalPlayerAudio || !window.globalPlayerState.currentTrack) return;
-                if (window.globalPlayerState.isPlaying) {
-                    globalPlayerAudio.pause();
-                } else {
-                    globalPlayerAudio.play().catch(function() {});
-                }
-            });
-        }
-
-        if (globalPlayerSeek && globalPlayerAudio) {
-            globalPlayerSeek.addEventListener('input', function() {
-                isSeeking = true;
-                const duration = globalPlayerAudio.duration;
-                if (duration && isFinite(duration) && globalPlayerCurrent) {
-                    const t = (parseFloat(globalPlayerSeek.value) / 100) * duration;
-                    globalPlayerCurrent.textContent = formatTime(t);
-                }
-            });
-            globalPlayerSeek.addEventListener('change', function() {
-                const duration = globalPlayerAudio.duration;
-                if (duration && isFinite(duration)) {
-                    globalPlayerAudio.currentTime = (parseFloat(globalPlayerSeek.value) / 100) * duration;
-                }
-                isSeeking = false;
-                window.globalPlayerState.saveState();
-            });
-        }
-
-        if (globalPlayerMute && globalPlayerAudio) {
-            globalPlayerMute.addEventListener('click', function() {
-                globalPlayerAudio.muted = !globalPlayerAudio.muted;
-                updateMuteButton();
-                window.globalPlayerState.saveState();
-            });
-        }
-
-        if (globalPlayerVolume && globalPlayerAudio) {
-            globalPlayerVolume.addEventListener('input', function() {
-                globalPlayerAudio.volume = parseFloat(globalPlayerVolume.value);
-                if (globalPlayerAudio.volume > 0) {
-                    globalPlayerAudio.muted = false;
-                }
-                updateMuteButton();
-                window.globalPlayerState.saveState();
-            });
-        }
 
         // Обработчики событий для глобального плеера
         if (globalPlayerAudio) {
@@ -1945,17 +1540,10 @@
             });
 
             globalPlayerAudio.addEventListener('pause', function() {
-                // При переходе на другую страницу браузер ставит pause — не сбрасываем isPlaying
-                if (isNavigatingAway || document.visibilityState === 'hidden') {
-                    window.globalPlayerState.saveState();
-                    return;
-                }
                 window.globalPlayerState.isPlaying = false;
                 window.globalPlayerState.updatePlayPauseIcons();
                 window.globalPlayerState.saveState();
             });
-
-            globalPlayerAudio.addEventListener('loadedmetadata', syncSeekFromAudio);
 
             globalPlayerAudio.addEventListener('ended', function() {
                 // получаем все кнопки воспроизведения в текущем представлении
@@ -1963,10 +1551,7 @@
                 if (playButtons.length === 0) return;
 
                 // находим индекс текущего трека
-                const currentSrc = window.globalPlayerState.currentTrack || this.src;
-                const currentIndex = playButtons.findIndex(function(btn) {
-                    return btn.dataset.url === currentSrc || btn.dataset.url === this.src;
-                }.bind(this));
+                const currentIndex = playButtons.findIndex(btn => btn.dataset.url === this.src);
                 if (currentIndex === -1) return;
 
                 // получаем следующий трек
@@ -1985,16 +1570,14 @@
             globalPlayerAudio.addEventListener('timeupdate', function() {
                 const currentTime = this.currentTime;
                 const duration = this.duration;
-                const progress = duration ? (currentTime / duration) * 100 : 0;
-
-                syncSeekFromAudio();
-
+                const progress = (currentTime / duration) * 100;
+                
+                // Обновляем прогресс-бар и время для текущего трека
                 document.querySelectorAll('.track-progress').forEach(function(progressBar) {
                     const card = progressBar.closest('.card');
                     const playBtn = card.querySelector('.play-pause-overlay-btn');
                     
-                    const activeUrl = window.globalPlayerState.currentTrack || globalPlayerAudio.src;
-                    if (playBtn && playBtn.dataset.url === activeUrl) {
+                    if (playBtn && playBtn.dataset.url === globalPlayerAudio.src) {
                         progressBar.querySelector('.progress-bar').style.width = progress + '%';
                         progressBar.querySelector('.current-time').textContent = formatTime(currentTime);
                         progressBar.querySelector('.duration').textContent = formatTime(duration);
@@ -2004,11 +1587,8 @@
                         progressBar.querySelector('.current-time').textContent = '0:00';
                     }
                 });
-
-                if (window._playerSaveTimer) clearTimeout(window._playerSaveTimer);
-                window._playerSaveTimer = setTimeout(function() {
-                    window.globalPlayerState.saveState();
-                }, 500);
+                
+                window.globalPlayerState.saveState();
             });
 
             globalPlayerAudio.addEventListener('loadedmetadata', function() {
@@ -2017,66 +1597,54 @@
                     const card = progressBar.closest('.card');
                     const playBtn = card.querySelector('.play-pause-overlay-btn');
                     
-                    const activeUrl = window.globalPlayerState.currentTrack || globalPlayerAudio.src;
-                    if (playBtn && playBtn.dataset.url === activeUrl) {
+                    if (playBtn && playBtn.dataset.url === globalPlayerAudio.src) {
                         progressBar.querySelector('.duration').textContent = formatTime(duration);
                     }
                 });
             });
 
             globalPlayerAudio.addEventListener('volumechange', function() {
-                if (globalPlayerVolume) {
-                    globalPlayerVolume.value = globalPlayerAudio.volume;
-                }
-                updateMuteButton();
                 window.globalPlayerState.saveState();
             });
 
-            // Сохраняем состояние перед уходом со страницы (пока isPlaying ещё корректен)
-            window.addEventListener('pagehide', function() {
-                if (isNavigatingAway && window.globalPlayerState.currentTrack) {
-                    window.globalPlayerState.isPlaying = true;
-                }
+            // Сохраняем состояние перед уходом со страницы
+            window.addEventListener('beforeunload', function() {
                 window.globalPlayerState.saveState();
             });
-            document.addEventListener('visibilitychange', function() {
-                if (document.visibilityState === 'hidden' && window.globalPlayerState.currentTrack) {
-                    if (window.globalPlayerState.isPlaying) {
-                        window.globalPlayerState.saveState();
-                    }
-                }
-            });
         }
 
-        function initGlobalPlayerFromStorage() {
-            if (window.globalPlayerState && typeof window.globalPlayerState.loadState === 'function') {
-                window.globalPlayerState.loadState();
-            }
+        // Функция форматирования времени
+        function formatTime(seconds) {
+            if (isNaN(seconds)) return '0:00';
+            const minutes = Math.floor(seconds / 60);
+            seconds = Math.floor(seconds % 60);
+            return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
         }
 
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initGlobalPlayerFromStorage);
-        } else {
-            initGlobalPlayerFromStorage();
-        }
+        // Загружаем сохраненное состояние при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            window.globalPlayerState.loadState();
+        });
 
 
         
         // 
         const scrollToTopBtn = document.getElementById('scrollToTop');
-        if (scrollToTopBtn) {
-            window.addEventListener('scroll', function() {
-                if (window.pageYOffset > 300) {
-                    scrollToTopBtn.classList.add('visible');
-                } else {
-                    scrollToTopBtn.classList.remove('visible');
-                }
-            });
+        
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                scrollToTopBtn.classList.add('visible');
+            } else {
+                scrollToTopBtn.classList.remove('visible');
+            }
+        });
 
-            scrollToTopBtn.addEventListener('click', function() {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+        scrollToTopBtn.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
             });
-        }
+        });
 
         document.addEventListener('DOMContentLoaded', function() {
             const loadingOverlay = document.querySelector('.loading-overlay');
@@ -2084,28 +1652,18 @@
             // показывает загрузочный экран при клике на ссылки
             document.addEventListener('click', function(e) {
                 const link = e.target.closest('a');
-                if (link && link.href && link.href.startsWith(window.location.origin) &&
-                    !link.hasAttribute('download') && link.target !== '_blank') {
-                    if (window.globalPlayerState && window.globalPlayerState.isPlaying) {
-                        isNavigatingAway = true;
-                        window.globalPlayerState.saveState();
-                    }
-                    if (!link.hasAttribute('data-no-loader')) {
-                        loadingOverlay.style.display = 'flex';
-                    }
+                if (link && !link.hasAttribute('data-no-loader') && 
+                    link.href && link.href.startsWith(window.location.origin)) {
+                    loadingOverlay.style.display = 'flex';
                 }
-            }, true);
+            });
 
             // показывает загрузочный экран при отправке формы
             document.addEventListener('submit', function(e) {
-                if (window.globalPlayerState && window.globalPlayerState.isPlaying) {
-                    isNavigatingAway = true;
-                    window.globalPlayerState.saveState();
-                }
                 if (!e.target.hasAttribute('data-no-loader')) {
                     loadingOverlay.style.display = 'flex';
                 }
-            }, true);
+            });
 
             // скрывает загрузочный экран при загрузке страницы
             window.addEventListener('load', function() {
