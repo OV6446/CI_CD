@@ -1615,6 +1615,7 @@
         const globalPlayerMute = document.getElementById('global-player-mute');
         const globalPlayerVolume = document.getElementById('global-player-volume');
         let isSeeking = false;
+        let isNavigatingAway = false;
 
         function formatTime(seconds) {
             if (isNaN(seconds)) return '0:00';
@@ -1787,30 +1788,40 @@
                 const state = {
                     currentTrack: this.currentTrack,
                     isPlaying: this.isPlaying,
-                    currentTime: globalPlayerAudio.currentTime,
+                    currentTime: globalPlayerAudio.currentTime || 0,
                     title: globalPlayerTitle ? globalPlayerTitle.textContent : '',
                     artist: globalPlayerArtist ? globalPlayerArtist.textContent : '',
                     cover: globalPlayerCover && globalPlayerCover.src ? globalPlayerCover.src : '',
                     volume: globalPlayerAudio.volume,
-                    muted: globalPlayerAudio.muted
+                    muted: globalPlayerAudio.muted,
+                    savedAt: Date.now()
                 };
-                localStorage.setItem('globalPlayerState', JSON.stringify(state));
+                try {
+                    localStorage.setItem('globalPlayerState', JSON.stringify(state));
+                } catch (e) { /* quota / private mode */ }
             },
             loadState: function() {
                 if (!globalPlayerAudio) return;
-                const savedState = localStorage.getItem('globalPlayerState');
-                if (!savedState) return;
-                const state = JSON.parse(savedState);
+                let state;
+                try {
+                    const savedState = localStorage.getItem('globalPlayerState');
+                    if (!savedState) return;
+                    state = JSON.parse(savedState);
+                } catch (e) {
+                    return;
+                }
                 if (!state.currentTrack) return;
 
+                const shouldPlay = !!state.isPlaying;
+                const self = this;
+
                 showGlobalPlayerBar();
-                globalPlayerAudio.src = state.currentTrack;
                 if (globalPlayerTitle) globalPlayerTitle.textContent = state.title || '';
                 if (globalPlayerArtist) globalPlayerArtist.textContent = state.artist || '';
                 setGlobalCover(state.cover || '');
                 this.currentTrack = state.currentTrack;
-                this.currentTime = state.currentTime;
-                this.isPlaying = !!state.isPlaying;
+                this.currentTime = state.currentTime || 0;
+                this.isPlaying = shouldPlay;
 
                 if (typeof state.volume !== 'undefined') {
                     globalPlayerAudio.volume = state.volume;
@@ -1820,18 +1831,36 @@
                     globalPlayerAudio.muted = state.muted;
                 }
 
-                globalPlayerAudio.addEventListener('loadedmetadata', function onMeta() {
-                    globalPlayerAudio.removeEventListener('loadedmetadata', onMeta);
-                    globalPlayerAudio.currentTime = state.currentTime || 0;
+                function applySeekAndMaybePlay() {
+                    const duration = globalPlayerAudio.duration;
+                    const seekTo = state.currentTime || 0;
+                    if (duration && isFinite(duration)) {
+                        globalPlayerAudio.currentTime = Math.min(seekTo, Math.max(0, duration - 0.05));
+                    } else if (seekTo > 0) {
+                        globalPlayerAudio.currentTime = seekTo;
+                    }
                     syncSeekFromAudio();
-                    if (state.isPlaying) {
+                    updateExpandLabel();
+                    updateMuteButton();
+                    self.updatePlayPauseIcons();
+                    if (shouldPlay) {
                         globalPlayerAudio.play().catch(function() {});
                     }
-                }, { once: true });
+                }
 
-                updateExpandLabel();
-                updateMuteButton();
-                this.updatePlayPauseIcons();
+                globalPlayerAudio.src = state.currentTrack;
+                globalPlayerAudio.load();
+
+                if (globalPlayerAudio.readyState >= 1) {
+                    applySeekAndMaybePlay();
+                } else {
+                    globalPlayerAudio.addEventListener('loadedmetadata', applySeekAndMaybePlay, { once: true });
+                    globalPlayerAudio.addEventListener('canplay', function onCanPlay() {
+                        if (shouldPlay && globalPlayerAudio.paused) {
+                            globalPlayerAudio.play().catch(function() {});
+                        }
+                    }, { once: true });
+                }
             }
         };
 
@@ -1916,6 +1945,11 @@
             });
 
             globalPlayerAudio.addEventListener('pause', function() {
+                // При переходе на другую страницу браузер ставит pause — не сбрасываем isPlaying
+                if (isNavigatingAway || document.visibilityState === 'hidden') {
+                    window.globalPlayerState.saveState();
+                    return;
+                }
                 window.globalPlayerState.isPlaying = false;
                 window.globalPlayerState.updatePlayPauseIcons();
                 window.globalPlayerState.saveState();
@@ -1929,7 +1963,10 @@
                 if (playButtons.length === 0) return;
 
                 // находим индекс текущего трека
-                const currentIndex = playButtons.findIndex(btn => btn.dataset.url === this.src);
+                const currentSrc = window.globalPlayerState.currentTrack || this.src;
+                const currentIndex = playButtons.findIndex(function(btn) {
+                    return btn.dataset.url === currentSrc || btn.dataset.url === this.src;
+                }.bind(this));
                 if (currentIndex === -1) return;
 
                 // получаем следующий трек
@@ -1956,7 +1993,8 @@
                     const card = progressBar.closest('.card');
                     const playBtn = card.querySelector('.play-pause-overlay-btn');
                     
-                    if (playBtn && playBtn.dataset.url === globalPlayerAudio.src) {
+                    const activeUrl = window.globalPlayerState.currentTrack || globalPlayerAudio.src;
+                    if (playBtn && playBtn.dataset.url === activeUrl) {
                         progressBar.querySelector('.progress-bar').style.width = progress + '%';
                         progressBar.querySelector('.current-time').textContent = formatTime(currentTime);
                         progressBar.querySelector('.duration').textContent = formatTime(duration);
@@ -1966,8 +2004,11 @@
                         progressBar.querySelector('.current-time').textContent = '0:00';
                     }
                 });
-                
-                window.globalPlayerState.saveState();
+
+                if (window._playerSaveTimer) clearTimeout(window._playerSaveTimer);
+                window._playerSaveTimer = setTimeout(function() {
+                    window.globalPlayerState.saveState();
+                }, 500);
             });
 
             globalPlayerAudio.addEventListener('loadedmetadata', function() {
@@ -1976,7 +2017,8 @@
                     const card = progressBar.closest('.card');
                     const playBtn = card.querySelector('.play-pause-overlay-btn');
                     
-                    if (playBtn && playBtn.dataset.url === globalPlayerAudio.src) {
+                    const activeUrl = window.globalPlayerState.currentTrack || globalPlayerAudio.src;
+                    if (playBtn && playBtn.dataset.url === activeUrl) {
                         progressBar.querySelector('.duration').textContent = formatTime(duration);
                     }
                 });
@@ -1990,18 +2032,33 @@
                 window.globalPlayerState.saveState();
             });
 
-            // Сохраняем состояние перед уходом со страницы
-            window.addEventListener('beforeunload', function() {
+            // Сохраняем состояние перед уходом со страницы (пока isPlaying ещё корректен)
+            window.addEventListener('pagehide', function() {
+                if (isNavigatingAway && window.globalPlayerState.currentTrack) {
+                    window.globalPlayerState.isPlaying = true;
+                }
                 window.globalPlayerState.saveState();
+            });
+            document.addEventListener('visibilitychange', function() {
+                if (document.visibilityState === 'hidden' && window.globalPlayerState.currentTrack) {
+                    if (window.globalPlayerState.isPlaying) {
+                        window.globalPlayerState.saveState();
+                    }
+                }
             });
         }
 
-        // Загружаем сохраненное состояние при загрузке страницы
-        document.addEventListener('DOMContentLoaded', function() {
-            if (window.globalPlayerState) {
+        function initGlobalPlayerFromStorage() {
+            if (window.globalPlayerState && typeof window.globalPlayerState.loadState === 'function') {
                 window.globalPlayerState.loadState();
             }
-        });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initGlobalPlayerFromStorage);
+        } else {
+            initGlobalPlayerFromStorage();
+        }
 
 
         
@@ -2027,18 +2084,28 @@
             // показывает загрузочный экран при клике на ссылки
             document.addEventListener('click', function(e) {
                 const link = e.target.closest('a');
-                if (link && !link.hasAttribute('data-no-loader') && 
-                    link.href && link.href.startsWith(window.location.origin)) {
-                    loadingOverlay.style.display = 'flex';
+                if (link && link.href && link.href.startsWith(window.location.origin) &&
+                    !link.hasAttribute('download') && link.target !== '_blank') {
+                    if (window.globalPlayerState && window.globalPlayerState.isPlaying) {
+                        isNavigatingAway = true;
+                        window.globalPlayerState.saveState();
+                    }
+                    if (!link.hasAttribute('data-no-loader')) {
+                        loadingOverlay.style.display = 'flex';
+                    }
                 }
-            });
+            }, true);
 
             // показывает загрузочный экран при отправке формы
             document.addEventListener('submit', function(e) {
+                if (window.globalPlayerState && window.globalPlayerState.isPlaying) {
+                    isNavigatingAway = true;
+                    window.globalPlayerState.saveState();
+                }
                 if (!e.target.hasAttribute('data-no-loader')) {
                     loadingOverlay.style.display = 'flex';
                 }
-            });
+            }, true);
 
             // скрывает загрузочный экран при загрузке страницы
             window.addEventListener('load', function() {
